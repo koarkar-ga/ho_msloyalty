@@ -53,6 +53,13 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
     );
   }
 
+  void _showHOServerConfigDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => const _HOServerConfigDialog(),
+    );
+  }
+
   String _searchQuery = '';
 
   @override
@@ -73,6 +80,17 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
                 ),
                 Row(
                   children: [
+                    ElevatedButton.icon(
+                      onPressed: _showHOServerConfigDialog,
+                      icon: const Icon(Icons.settings_ethernet),
+                      label: const Text('HO Server Config'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
                     ElevatedButton.icon(
                       onPressed: () => _showEditDialog(null, false),
                       icon: const Icon(Icons.dock),
@@ -529,6 +547,158 @@ class _UserEditDialogState extends State<_UserEditDialog> {
         DropdownMenuItem(value: 11, child: Text('Staff (Level 11)')),
       ],
       onChanged: (val) => setState(() => _userLevel = val!),
+    );
+  }
+}
+
+class _HOServerConfigDialog extends StatefulWidget {
+  const _HOServerConfigDialog();
+
+  @override
+  State<_HOServerConfigDialog> createState() => _HOServerConfigDialogState();
+}
+
+class _HOServerConfigDialogState extends State<_HOServerConfigDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _hostController = TextEditingController();
+  final _userController = TextEditingController();
+  final _passController = TextEditingController();
+  final _dbController = TextEditingController();
+  final _apiController = TextEditingController();
+  bool _isLoading = true;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConfig();
+  }
+
+  Future<void> _loadConfig() async {
+    final config = await HODataService().getHOServerConfig();
+    if (config != null) {
+      setState(() {
+        _hostController.text = config['db_host'] ?? '';
+        _userController.text = config['db_user'] ?? '';
+        _passController.text = config['db_pass'] ?? '';
+        _dbController.text = config['db_name'] ?? '';
+        _apiController.text = config['api_url'] ?? '';
+      });
+    }
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isSaving = true);
+    try {
+      await HODataService().saveHOServerConfig({
+        'db_host': _hostController.text,
+        'db_user': _userController.text,
+        'db_pass': _passController.text,
+        'db_name': _dbController.text,
+        'api_url': _apiController.text,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('HO Server Configuration Saved!')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: 500,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: HOColors.surface.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: _isLoading 
+            ? const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+            : Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.settings_ethernet, color: HOColors.accent, size: 28),
+                          SizedBox(width: 12),
+                          Text(
+                            'HO Server Configuration',
+                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Set default connection details for "ALL STATIONS" users.',
+                        style: TextStyle(color: Colors.white54, fontSize: 13),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildField('Server Host', _hostController, Icons.dns),
+                      const SizedBox(height: 16),
+                      _buildField('Database Username', _userController, Icons.person),
+                      const SizedBox(height: 16),
+                      _buildField('Database Password', _passController, Icons.lock, isPassword: true),
+                      const SizedBox(height: 16),
+                      _buildField('Database Name', _dbController, Icons.storage),
+                      const SizedBox(height: 16),
+                      _buildField('Local API URL', _apiController, Icons.link),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: _isSaving ? null : _save,
+                            style: ElevatedButton.styleFrom(backgroundColor: HOColors.accent, foregroundColor: Colors.white),
+                            child: _isSaving 
+                              ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
+                              : const Text('Save Configuration'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildField(String label, TextEditingController controller, IconData icon, {bool isPassword = false}) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white54),
+        prefixIcon: Icon(icon, color: Colors.white38, size: 20),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.05),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      validator: (v) => v!.isEmpty ? 'Required' : null,
     );
   }
 }

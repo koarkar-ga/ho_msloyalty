@@ -321,6 +321,33 @@ class HODataService {
     }
   }
 
+  Future<Map<String, dynamic>?> getHOServerConfig() async {
+    try {
+      final response = await supabase
+          .from('auth')
+          .select('db_host, db_user, db_pass, db_name, api_url')
+          .eq('station_code', 'ALL')
+          .maybeSingle();
+      return response;
+    } catch (e) {
+      print("Error in getHOServerConfig: $e");
+      return null;
+    }
+  }
+
+  Future<void> saveHOServerConfig(Map<String, dynamic> data) async {
+    await supabase
+        .from('auth')
+        .update(data)
+        .eq('station_code', 'ALL');
+    
+    await logActivity(
+      actionType: 'SYSTEM_CONFIG',
+      description: 'Updated HO Server Configuration',
+      metadata: data,
+    );
+  }
+
   Future<List<Map<String, dynamic>>> getHOUsers() async {
     final response = await supabase
         .from('ho_auth')

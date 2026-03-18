@@ -611,7 +611,11 @@ class _HODashboardBaseState extends State<HODashboardBase> {
                   _sidebarItem(13, Icons.article_rounded, 'App Content'),
                   _sidebarItem(14, Icons.stars_rounded, 'Point Management'),
                   _sidebarItem(15, Icons.ads_click, 'Splash ADs'),
-                  _sidebarItem(16, Icons.rate_review_rounded, 'Customer Ratings'),
+                  _sidebarItem(
+                    16,
+                    Icons.rate_review_rounded,
+                    'Customer Ratings',
+                  ),
                 ],
               ),
             ),
