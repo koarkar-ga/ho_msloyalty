@@ -7,7 +7,8 @@ class AppVersionManagementPage extends StatefulWidget {
   const AppVersionManagementPage({super.key});
 
   @override
-  State<AppVersionManagementPage> createState() => _AppVersionManagementPageState();
+  State<AppVersionManagementPage> createState() =>
+      _AppVersionManagementPageState();
 }
 
 class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
@@ -29,9 +30,9 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
         _versions = versions;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading versions: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading versions: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -40,10 +41,8 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
   void _showEditDialog([Map<String, dynamic>? version]) {
     showDialog(
       context: context,
-      builder: (context) => _VersionEditDialog(
-        version: version,
-        onSave: () => _loadVersions(),
-      ),
+      builder: (context) =>
+          _VersionEditDialog(version: version, onSave: () => _loadVersions()),
     );
   }
 
@@ -74,7 +73,10 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: HOColors.accent,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ],
@@ -113,15 +115,22 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
           final bool isMandatory = v['is_mandatory'] ?? false;
 
           return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 8,
+            ),
             leading: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: (isMandatory ? Colors.red : HOColors.accent).withOpacity(0.1),
+                color: (isMandatory ? Colors.red : HOColors.accent).withOpacity(
+                  0.1,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isMandatory ? Icons.warning_rounded : Icons.system_update_rounded,
+                isMandatory
+                    ? Icons.warning_rounded
+                    : Icons.system_update_rounded,
                 color: isMandatory ? Colors.red : HOColors.accent,
               ),
             ),
@@ -161,14 +170,21 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
                 if (isMandatory)
                   Container(
                     margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Text(
                       'MANDATORY',
-                      style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 IconButton(
@@ -199,7 +215,10 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
         children: [
           Icon(icon, size: 12, color: Colors.white38),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white38, fontSize: 10),
+          ),
         ],
       ),
     );
@@ -210,7 +229,10 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: HOColors.surface,
-        title: const Text('Confirm Delete', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Confirm Delete',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Are you sure you want to delete version ${version['version_code']}?',
           style: const TextStyle(color: Colors.white70),
@@ -222,7 +244,10 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
         ],
       ),
@@ -233,9 +258,9 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
         await _dataService.deleteAppVersion(version['id']);
         _loadVersions();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -265,12 +290,24 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
   @override
   void initState() {
     super.initState();
-    _codeController = TextEditingController(text: widget.version?['version_code'] ?? '');
-    _buildController = TextEditingController(text: widget.version?['build_number']?.toString() ?? '');
-    _notesController = TextEditingController(text: widget.version?['release_notes'] ?? '');
-    _androidController = TextEditingController(text: widget.version?['android_url'] ?? '');
-    _iosController = TextEditingController(text: widget.version?['ios_url'] ?? '');
-    _windowsController = TextEditingController(text: widget.version?['windows_url'] ?? '');
+    _codeController = TextEditingController(
+      text: widget.version?['version_code'] ?? '',
+    );
+    _buildController = TextEditingController(
+      text: widget.version?['build_number']?.toString() ?? '',
+    );
+    _notesController = TextEditingController(
+      text: widget.version?['release_notes'] ?? '',
+    );
+    _androidController = TextEditingController(
+      text: widget.version?['android_url'] ?? '',
+    );
+    _iosController = TextEditingController(
+      text: widget.version?['ios_url'] ?? '',
+    );
+    _windowsController = TextEditingController(
+      text: widget.version?['windows_url'] ?? '',
+    );
     _isMandatory = widget.version?['is_mandatory'] ?? false;
   }
 
@@ -282,9 +319,13 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
         'version_code': _codeController.text,
         'build_number': int.tryParse(_buildController.text) ?? 0,
         'release_notes': _notesController.text,
-        'android_url': _androidController.text.isNotEmpty ? _androidController.text : null,
+        'android_url': _androidController.text.isNotEmpty
+            ? _androidController.text
+            : null,
         'ios_url': _iosController.text.isNotEmpty ? _iosController.text : null,
-        'windows_url': _windowsController.text.isNotEmpty ? _windowsController.text : null,
+        'windows_url': _windowsController.text.isNotEmpty
+            ? _windowsController.text
+            : null,
         'is_mandatory': _isMandatory,
       };
 
@@ -297,7 +338,9 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
       widget.onSave();
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isSaving = false);
     }
@@ -324,15 +367,32 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    widget.version == null ? 'Release Update' : 'Edit Update Info',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    widget.version == null
+                        ? 'Release Update'
+                        : 'Edit Update Info',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Row(
                     children: [
-                      Expanded(child: _buildField('Version Code (e.g. 1.0.2)', _codeController)),
+                      Expanded(
+                        child: _buildField(
+                          'Version Code (e.g. 1.0.2)',
+                          _codeController,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildField('Build Number (e.g. 3)', _buildController, isNumber: true)),
+                      Expanded(
+                        child: _buildField(
+                          'Build Number (e.g. 3)',
+                          _buildController,
+                          isNumber: true,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -345,23 +405,47 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
                   _buildField('Windows Download URL', _windowsController),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('Is Mandatory Update?', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Forces users to update before using the app', style: TextStyle(color: Colors.white54)),
-                    secondary: Icon(Icons.warning_amber_rounded, color: _isMandatory ? Colors.red : Colors.white24),
+                    title: const Text(
+                      'Is Mandatory Update?',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    subtitle: const Text(
+                      'Forces users to update before using the app',
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                    secondary: Icon(
+                      Icons.warning_amber_rounded,
+                      color: _isMandatory ? Colors.red : Colors.white24,
+                    ),
                     value: _isMandatory,
                     onChanged: (val) => setState(() => _isMandatory = val),
-                    activeColor: Colors.redAccent,
+                    activeThumbColor: Colors.redAccent,
                   ),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
                       const SizedBox(width: 16),
                       ElevatedButton(
                         onPressed: _isSaving ? null : _save,
-                        style: ElevatedButton.styleFrom(backgroundColor: HOColors.accent, foregroundColor: Colors.white),
-                        child: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Publish Release'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HOColors.accent,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Publish Release'),
                       ),
                     ],
                   ),
@@ -374,7 +458,12 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, {bool isNumber = false, int maxLines = 1}) {
+  Widget _buildField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+    int maxLines = 1,
+  }) {
     return TextFormField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -387,7 +476,13 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
         fillColor: Colors.white.withOpacity(0.05),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      validator: (v) => v!.isEmpty && !label.contains('URL') && !label.contains('iOS') && !label.contains('Windows') ? 'Required' : null,
+      validator: (v) =>
+          v!.isEmpty &&
+              !label.contains('URL') &&
+              !label.contains('iOS') &&
+              !label.contains('Windows')
+          ? 'Required'
+          : null,
     );
   }
 }

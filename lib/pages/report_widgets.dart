@@ -39,22 +39,29 @@ class ReportFilterBar extends StatelessWidget {
           Expanded(
             flex: 2,
             child: DropdownButtonFormField<String>(
-              value: selectedStationId,
+              initialValue: selectedStationId,
               dropdownColor: HOColors.surface,
               decoration: InputDecoration(
                 labelText: 'Station',
                 labelStyle: const TextStyle(color: Colors.white54),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 filled: true,
                 fillColor: Colors.black26,
               ),
               style: const TextStyle(color: Colors.white),
               items: [
-                const DropdownMenuItem(value: null, child: Text("All Stations")),
-                ...stations.map((s) => DropdownMenuItem(
-                      value: s['id'].toString(),
-                      child: Text(s['name'] ?? 'Unknown'),
-                    ))
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text("All Stations"),
+                ),
+                ...stations.map(
+                  (s) => DropdownMenuItem(
+                    value: s['id'].toString(),
+                    child: Text(s['name'] ?? 'Unknown'),
+                  ),
+                ),
               ],
               onChanged: onStationChange,
             ),
@@ -69,10 +76,15 @@ class ReportFilterBar extends StatelessWidget {
                 decoration: InputDecoration(
                   labelText: 'Date Range',
                   labelStyle: const TextStyle(color: Colors.white54),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   filled: true,
                   fillColor: Colors.black26,
-                  suffixIcon: const Icon(Icons.date_range, color: Colors.white54),
+                  suffixIcon: const Icon(
+                    Icons.date_range,
+                    color: Colors.white54,
+                  ),
                 ),
                 child: Text(
                   '${df.format(startDate)} - ${df.format(endDate)}',
@@ -86,11 +98,16 @@ class ReportFilterBar extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onExport,
             icon: const Icon(Icons.download, color: Colors.white),
-            label: const Text('Export CSV', style: TextStyle(color: Colors.white)),
+            label: const Text(
+              'Export CSV',
+              style: TextStyle(color: Colors.white),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade600,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ],

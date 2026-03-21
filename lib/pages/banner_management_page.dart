@@ -29,9 +29,9 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
       final data = await _dataService.getBanners();
       setState(() => _banners = data);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading banners: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading banners: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -40,10 +40,8 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
   void _showEditDialog([Map<String, dynamic>? banner]) {
     showDialog(
       context: context,
-      builder: (context) => _BannerEditDialog(
-        banner: banner,
-        onSave: () => _loadBanners(),
-      ),
+      builder: (context) =>
+          _BannerEditDialog(banner: banner, onSave: () => _loadBanners()),
     );
   }
 
@@ -54,7 +52,10 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
         title: const Text('Confirm Delete'),
         content: const Text('Are you sure you want to delete this banner?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -68,9 +69,9 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
         await _dataService.deleteBanner(id);
         _loadBanners();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting banner: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting banner: $e')));
       }
     }
   }
@@ -102,7 +103,10 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: HOColors.accent,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ],
@@ -112,24 +116,30 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _banners.isEmpty
-                      ? const Center(child: Text('No banners found', style: TextStyle(color: Colors.white70)))
-                      : GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  ? const Center(
+                      child: Text(
+                        'No banners found',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    )
+                  : GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
                             crossAxisSpacing: 20,
                             mainAxisSpacing: 20,
                             childAspectRatio: 16 / 9,
                           ),
-                          itemCount: _banners.length,
-                          itemBuilder: (context, index) {
-                            final banner = _banners[index];
-                            return _BannerCard(
-                              banner: banner,
-                              onEdit: () => _showEditDialog(banner),
-                              onDelete: () => _deleteBanner(banner['id']),
-                            );
-                          },
-                        ),
+                      itemCount: _banners.length,
+                      itemBuilder: (context, index) {
+                        final banner = _banners[index];
+                        return _BannerCard(
+                          banner: banner,
+                          onEdit: () => _showEditDialog(banner),
+                          onDelete: () => _deleteBanner(banner['id']),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -181,7 +191,11 @@ class _BannerCard extends StatelessWidget {
                 CircleAvatar(
                   backgroundColor: Colors.black54,
                   child: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
                     onPressed: onDelete,
                   ),
                 ),
@@ -204,7 +218,9 @@ class _BannerCard extends StatelessWidget {
               child: Text(
                 banner['is_active'] ? 'ACTIVE' : 'INACTIVE',
                 style: TextStyle(
-                  color: banner['is_active'] ? Colors.greenAccent : Colors.white38,
+                  color: banner['is_active']
+                      ? Colors.greenAccent
+                      : Colors.white38,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -239,7 +255,9 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
   @override
   void initState() {
     super.initState();
-    _actionUrlController = TextEditingController(text: widget.banner?['action_url'] ?? '');
+    _actionUrlController = TextEditingController(
+      text: widget.banner?['action_url'] ?? '',
+    );
     _isActive = widget.banner?['is_active'] ?? true;
     _imageUrl = widget.banner?['image_url'];
   }
@@ -250,7 +268,7 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
         type: FileType.image,
         withData: true,
       );
-      
+
       if (result != null && result.files.isNotEmpty) {
         setState(() {
           _previewBytes = result.files.first.bytes;
@@ -284,9 +302,9 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
       widget.onSave();
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving banner: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving banner: $e')));
     } finally {
       setState(() => _isSaving = false);
     }
@@ -313,7 +331,11 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
               children: [
                 Text(
                   widget.banner == null ? 'Add Banner' : 'Edit Banner',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 GestureDetector(
@@ -325,18 +347,31 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(16),
                       image: _previewBytes != null
-                          ? DecorationImage(image: MemoryImage(_previewBytes!), fit: BoxFit.cover)
+                          ? DecorationImage(
+                              image: MemoryImage(_previewBytes!),
+                              fit: BoxFit.cover,
+                            )
                           : (_imageUrl != null
-                              ? DecorationImage(image: NetworkImage(_imageUrl!), fit: BoxFit.cover)
-                              : null),
+                                ? DecorationImage(
+                                    image: NetworkImage(_imageUrl!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null),
                     ),
                     child: (_previewBytes == null && _imageUrl == null)
                         ? const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo, size: 40, color: Colors.white54),
+                              Icon(
+                                Icons.add_a_photo,
+                                size: 40,
+                                color: Colors.white54,
+                              ),
                               SizedBox(height: 8),
-                              Text('Select Banner Image', style: TextStyle(color: Colors.white54)),
+                              Text(
+                                'Select Banner Image',
+                                style: TextStyle(color: Colors.white54),
+                              ),
                             ],
                           )
                         : null,
@@ -351,30 +386,47 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
                     labelStyle: const TextStyle(color: Colors.white54),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(
-                  title: const Text('Is Active', style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'Is Active',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   value: _isActive,
                   onChanged: (val) => setState(() => _isActive = val),
-                  activeColor: HOColors.accent,
+                  activeThumbColor: HOColors.accent,
                 ),
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
                     const SizedBox(width: 16),
                     ElevatedButton(
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: HOColors.accent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
                       ),
-                      child: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save'),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Save'),
                     ),
                   ],
                 ),

@@ -79,11 +79,12 @@ class _ReportsPageState extends State<ReportsPage>
       endDate: _endDate,
       stationId: _selectedStationId,
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _pointsData = data;
         _isLoadingPoints = false;
       });
+    }
   }
 
   Future<void> _fetchRedemptions() async {
@@ -94,11 +95,12 @@ class _ReportsPageState extends State<ReportsPage>
       endDate: _endDate,
       stationId: _selectedStationId,
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _redemptionsData = data;
         _isLoadingRedemptions = false;
       });
+    }
   }
 
   String _getStationName(String? stationId) {
@@ -173,7 +175,10 @@ class _ReportsPageState extends State<ReportsPage>
         final dt = DateTime.parse(txn['created_at']).toLocal();
         final stationName = _getStationName(txn['station_id']);
         final amount = (txn['amount_mmk'] as num?)?.toDouble() ?? 0.0;
-        final liters = (txn['liters'] as num?)?.toDouble() ?? (txn['sale_liter'] as num?)?.toDouble() ?? 0.0;
+        final liters =
+            (txn['liters'] as num?)?.toDouble() ??
+            (txn['sale_liter'] as num?)?.toDouble() ??
+            0.0;
         final pricePerLiter = liters > 0 ? (amount / liters) : 0.0;
 
         rows.add([
@@ -205,8 +210,11 @@ class _ReportsPageState extends State<ReportsPage>
         final stationName = _getStationName(txn['station_id']);
         final price = (txn['amount_mmk'] as num?)?.toDouble() ?? 0.0;
         final actualLiters = (txn['sale_liter'] as num?)?.toDouble();
-        final unitPriceFallback = (txn['unit_price'] as num?)?.toDouble() ?? 1.0;
-        final liters = actualLiters ?? (unitPriceFallback > 0 ? (price / unitPriceFallback) : 0.0);
+        final unitPriceFallback =
+            (txn['unit_price'] as num?)?.toDouble() ?? 1.0;
+        final liters =
+            actualLiters ??
+            (unitPriceFallback > 0 ? (price / unitPriceFallback) : 0.0);
         final pricePerLiter = liters > 0 ? (price / liters) : 0.0;
 
         rows.add([
@@ -234,7 +242,7 @@ class _ReportsPageState extends State<ReportsPage>
         final stationName = _getStationName(txn['station_id']);
         final reward = txn['gift_cards']?['title'] ?? 'Unknown';
         final required = txn['gift_cards']?['points_required'] ?? 0;
-        
+
         rows.add([
           DateFormat('dd MMM yyyy, HH:mm').format(dt),
           stationName,
@@ -366,8 +374,9 @@ class _ReportsPageState extends State<ReportsPage>
                             final dt = DateTime.parse(
                               txn['created_at'],
                             ).toLocal();
-                            final stationName =
-                                _getStationName(txn['station_id']);
+                            final stationName = _getStationName(
+                              txn['station_id'],
+                            );
                             return DataRow(
                               cells: [
                                 DataCell(
@@ -380,14 +389,28 @@ class _ReportsPageState extends State<ReportsPage>
                                 DataCell(Text(txn['vehicle_no'] ?? '-')),
                                 DataCell(Text(txn['fuel_type'] ?? '-')),
                                 DataCell(
-                                  Text((txn['liters'] ?? txn['sale_liter'] ?? '0').toString()),
+                                  Text(
+                                    (txn['liters'] ?? txn['sale_liter'] ?? '0')
+                                        .toString(),
+                                  ),
                                 ),
                                 DataCell(
-                                  Text((() {
-                                    final amount = (txn['amount_mmk'] as num?)?.toDouble() ?? 0.0;
-                                    final liters = (txn['liters'] as num?)?.toDouble() ?? (txn['sale_liter'] as num?)?.toDouble() ?? 0.0;
-                                    return liters > 0 ? (amount / liters).toStringAsFixed(0) : '-';
-                                  })()),
+                                  Text(
+                                    (() {
+                                      final amount =
+                                          (txn['amount_mmk'] as num?)
+                                              ?.toDouble() ??
+                                          0.0;
+                                      final liters =
+                                          (txn['liters'] as num?)?.toDouble() ??
+                                          (txn['sale_liter'] as num?)
+                                              ?.toDouble() ??
+                                          0.0;
+                                      return liters > 0
+                                          ? (amount / liters).toStringAsFixed(0)
+                                          : '-';
+                                    })(),
+                                  ),
                                 ),
                                 DataCell(
                                   Text(
@@ -469,10 +492,13 @@ class _ReportsPageState extends State<ReportsPage>
                             final dt = DateTime.parse(
                               txn['created_at'],
                             ).toLocal();
-                            final stationName =
-                                _getStationName(txn['station_id']);
-                            final price = (txn['amount_mmk'] as num?)?.toDouble() ?? 0.0;
-                            final unitPrice = (txn['unit_price'] as num?)?.toDouble() ?? 1.0;
+                            final stationName = _getStationName(
+                              txn['station_id'],
+                            );
+                            final price =
+                                (txn['amount_mmk'] as num?)?.toDouble() ?? 0.0;
+                            final unitPrice =
+                                (txn['unit_price'] as num?)?.toDouble() ?? 1.0;
 
                             return DataRow(
                               cells: [
@@ -486,20 +512,32 @@ class _ReportsPageState extends State<ReportsPage>
                                 DataCell(Text(txn['fuel_type'] ?? '-')),
                                 DataCell(Text(txn['payment_type'] ?? '-')),
                                 DataCell(
+                                  Text(NumberFormat('#,###').format(price)),
+                                ),
+                                DataCell(
                                   Text(
-                                    NumberFormat(
-                                      '#,###',
-                                    ).format(price),
+                                    (txn['sale_liter'] ??
+                                            (unitPrice > 0
+                                                ? (price / unitPrice)
+                                                      .toStringAsFixed(2)
+                                                : '0'))
+                                        .toString(),
                                   ),
                                 ),
                                 DataCell(
-                                  Text((txn['sale_liter'] ?? (unitPrice > 0 ? (price / unitPrice).toStringAsFixed(2) : '0')).toString()),
-                                ),
-                                DataCell(
-                                  Text((() {
-                                    final liters = (txn['sale_liter'] as num?)?.toDouble() ?? (unitPrice > 0 ? (price / unitPrice) : 0.0);
-                                    return liters > 0 ? (price / liters).toStringAsFixed(0) : '-';
-                                  })()),
+                                  Text(
+                                    (() {
+                                      final liters =
+                                          (txn['sale_liter'] as num?)
+                                              ?.toDouble() ??
+                                          (unitPrice > 0
+                                              ? (price / unitPrice)
+                                              : 0.0);
+                                      return liters > 0
+                                          ? (price / liters).toStringAsFixed(0)
+                                          : '-';
+                                    })(),
+                                  ),
                                 ),
                                 DataCell(
                                   Text(
@@ -578,8 +616,9 @@ class _ReportsPageState extends State<ReportsPage>
                             final dt = DateTime.parse(
                               txn['created_at'],
                             ).toLocal();
-                            final stationName =
-                                _getStationName(txn['station_id']);
+                            final stationName = _getStationName(
+                              txn['station_id'],
+                            );
                             final reward =
                                 txn['gift_cards']?['title'] ?? 'Unknown';
                             final required =

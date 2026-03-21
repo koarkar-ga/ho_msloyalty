@@ -13,7 +13,9 @@ class HOColors {
   static const Color divider = Colors.white10;
 
   // ── Glassmorphism Tokens ──────────────────────────────────────────
-  static const Color glassBackground = Color(0x1A64B5F6); // Very transparent blue
+  static const Color glassBackground = Color(
+    0x1A64B5F6,
+  ); // Very transparent blue
   static const Color glassBorder = Color(0x33FFFFFF); // Transparent white
   static const LinearGradient premiumGradient = LinearGradient(
     colors: [Color(0xFFB8860B), Color(0xFFD4AF37), Color(0xFFFFD700)],
@@ -32,7 +34,6 @@ class HOTheme {
         primary: HOColors.primary,
         secondary: HOColors.accent,
         surface: HOColors.surface,
-        background: HOColors.background,
       ),
       textTheme: GoogleFonts.interTextTheme().apply(
         bodyColor: HOColors.textBody,

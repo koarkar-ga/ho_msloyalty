@@ -17,13 +17,13 @@ class HODataService {
   // ── Summary Stats ──────────────────────────────────────────────────
   Future<Map<String, dynamic>> getSummaryStats() async {
     final today = DateTime.now().toUtc().toIso8601String().split('T')[0];
-    
+
     // Points issued today
     final pointsRes = await supabase
         .from('fuel_transactions')
         .select('points_earned')
         .gte('created_at', today);
-    
+
     int totalPoints = 0;
     for (var row in pointsRes) {
       totalPoints += (row['points_earned'] as num).toInt();
@@ -34,24 +34,25 @@ class HODataService {
         .from('redemption_history')
         .select('id')
         .gte('created_at', today);
-    
+
     final totalRedemptions = redemptionsRes.length;
 
     // Active stations
-    final stationsRes = await supabase
-        .from('stations')
-        .select('id');
-    
+    final stationsRes = await supabase.from('stations').select('id');
+
     final totalStations = stationsRes.length;
 
     // Online users (last 5 minutes)
-    final fiveMinsAgo = DateTime.now().toUtc().subtract(const Duration(minutes: 5)).toIso8601String();
+    final fiveMinsAgo = DateTime.now()
+        .toUtc()
+        .subtract(const Duration(minutes: 5))
+        .toIso8601String();
     final onlineRes = await supabase
         .from('profiles')
         .select('id')
         .gte('last_login_at', fiveMinsAgo)
         .eq('is_active', true);
-    
+
     final onlineUsers = onlineRes.length;
 
     return {
@@ -65,14 +66,16 @@ class HODataService {
   // ── Station Metrics ────────────────────────────────────────────────
   Future<List<Map<String, dynamic>>> getStationsWithMetrics() async {
     final stations = await supabase.from('stations').select('*, station_id');
-    final txns = await supabase.from('fuel_transactions').select('station_id, points_earned');
+    final txns = await supabase
+        .from('fuel_transactions')
+        .select('station_id, points_earned');
 
     List<Map<String, dynamic>> result = [];
     for (var station in stations) {
       final sId = station['station_id'];
       int points = 0;
       int count = 0;
-      
+
       for (var txn in txns) {
         if (txn['station_id'] == sId) {
           points += (txn['points_earned'] as num).toInt();
@@ -98,23 +101,28 @@ class HODataService {
         .select('*')
         .order('created_at', ascending: false)
         .limit(50);
-    
+
     return List<Map<String, dynamic>>.from(response);
   }
 
-  RealtimeChannel subscribeToActivities(void Function(PostgresChangeEvent event, Map<String, dynamic> record) callback) {
+  RealtimeChannel subscribeToActivities(
+    void Function(PostgresChangeEvent event, Map<String, dynamic> record)
+    callback,
+  ) {
     print("DEBUG: Subscribing to activities...");
     final channel = supabase.channel('public:activities');
-    
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'activities',
-      callback: (payload) {
-        print("DEBUG: Activities change received: ${payload.eventType}");
-        callback(payload.eventType, payload.newRecord);
-      },
-    ).subscribe();
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'activities',
+          callback: (payload) {
+            print("DEBUG: Activities change received: ${payload.eventType}");
+            callback(payload.eventType, payload.newRecord);
+          },
+        )
+        .subscribe();
 
     return channel;
   }
@@ -132,10 +140,10 @@ class HODataService {
       await supabase.from('activities').insert({
         'action_type': actionType,
         'description': description,
-        if (stationId != null) 'station_id': stationId,
-        if (userId != null) 'user_id': userId,
-        if (userName != null) 'user_name': userName,
-        if (metadata != null) 'metadata': metadata,
+        'station_id': ?stationId,
+        'user_id': ?userId,
+        'user_name': ?userName,
+        'metadata': ?metadata,
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
     } catch (e) {
@@ -145,27 +153,29 @@ class HODataService {
 
   // ── Update/Create Station ────────────────────────────────────────────────
   Future<void> updateStation(int id, Map<String, dynamic> data) async {
-    await supabase
-        .from('stations')
-        .update(data)
-        .eq('id', id);
+    await supabase.from('stations').update(data).eq('id', id);
   }
 
   Future<void> createStation(Map<String, dynamic> data) async {
-    await supabase
-        .from('stations')
-        .insert(data);
+    await supabase.from('stations').insert(data);
   }
 
   // ── Upload Image ──────────────────────────────────────────────────
-  Future<String?> uploadStationImage(String stationId, Uint8List bytes, String extension) async {
-    final path = 'stations/$stationId-${DateTime.now().millisecondsSinceEpoch}.$extension';
-    
-    await supabase.storage.from('moonsun_assets').uploadBinary(
-      path, 
-      bytes,
-      fileOptions: FileOptions(contentType: 'image/$extension')
-    );
+  Future<String?> uploadStationImage(
+    String stationId,
+    Uint8List bytes,
+    String extension,
+  ) async {
+    final path =
+        'stations/$stationId-${DateTime.now().millisecondsSinceEpoch}.$extension';
+
+    await supabase.storage
+        .from('moonsun_assets')
+        .uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: 'image/$extension'),
+        );
 
     return supabase.storage.from('moonsun_assets').getPublicUrl(path);
   }
@@ -176,18 +186,23 @@ class HODataService {
         .from('profiles')
         .select('*, member_types(name)')
         .order('full_name');
-    
+
     // Fetch stats to enrich profile data
     // Note: In a production app, this should be done via a View or RPC for efficiency
     try {
-      final earnedRes = await supabase.from('fuel_transactions').select('user_id, points_earned');
-      final usedRes = await supabase.from('redemption_history').select('user_id, points_spent');
+      final earnedRes = await supabase
+          .from('fuel_transactions')
+          .select('user_id, points_earned');
+      final usedRes = await supabase
+          .from('redemption_history')
+          .select('user_id, points_spent');
 
       Map<String, int> earnedMap = {};
       for (var row in earnedRes) {
         final uid = row['user_id'] as String?;
         if (uid != null) {
-          earnedMap[uid] = (earnedMap[uid] ?? 0) + (row['points_earned'] as num).toInt();
+          earnedMap[uid] =
+              (earnedMap[uid] ?? 0) + (row['points_earned'] as num).toInt();
         }
       }
 
@@ -195,7 +210,8 @@ class HODataService {
       for (var row in usedRes) {
         final uid = row['user_id'] as String?;
         if (uid != null) {
-          usedMap[uid] = (usedMap[uid] ?? 0) + (row['points_spent'] as num).toInt();
+          usedMap[uid] =
+              (usedMap[uid] ?? 0) + (row['points_spent'] as num).toInt();
         }
       }
 
@@ -230,33 +246,28 @@ class HODataService {
   }
 
   Future<void> updateGiftCard(int id, Map<String, dynamic> data) async {
-    await supabase
-        .from('gift_cards')
-        .update(data)
-        .eq('id', id);
+    await supabase.from('gift_cards').update(data).eq('id', id);
   }
 
   Future<void> createGiftCard(Map<String, dynamic> data) async {
-    await supabase
-        .from('gift_cards')
-        .insert(data);
+    await supabase.from('gift_cards').insert(data);
   }
 
   Future<void> deleteGiftCard(int id) async {
-    await supabase
-        .from('gift_cards')
-        .delete()
-        .eq('id', id);
+    await supabase.from('gift_cards').delete().eq('id', id);
   }
 
   Future<String?> uploadGiftCardImage(Uint8List bytes, String extension) async {
-    final fileName = 'giftcards/${DateTime.now().millisecondsSinceEpoch}.$extension';
-    
-    await supabase.storage.from('moonsun_assets').uploadBinary(
-      fileName, 
-      bytes,
-      fileOptions: FileOptions(contentType: 'image/$extension')
-    );
+    final fileName =
+        'giftcards/${DateTime.now().millisecondsSinceEpoch}.$extension';
+
+    await supabase.storage
+        .from('moonsun_assets')
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: FileOptions(contentType: 'image/$extension'),
+        );
 
     return supabase.storage.from('moonsun_assets').getPublicUrl(fileName);
   }
@@ -283,12 +294,15 @@ class HODataService {
   }
 
   Future<String?> uploadBannerImage(Uint8List bytes, String extension) async {
-    final fileName = 'banners/${DateTime.now().millisecondsSinceEpoch}.$extension';
-    await supabase.storage.from('moonsun_assets').uploadBinary(
-      fileName, 
-      bytes,
-      fileOptions: FileOptions(contentType: 'image/$extension')
-    );
+    final fileName =
+        'banners/${DateTime.now().millisecondsSinceEpoch}.$extension';
+    await supabase.storage
+        .from('moonsun_assets')
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: FileOptions(contentType: 'image/$extension'),
+        );
     return supabase.storage.from('moonsun_assets').getPublicUrl(fileName);
   }
 
@@ -299,20 +313,25 @@ class HODataService {
           .from('auth')
           .select('*')
           .order('fullname');
-      
+
       final users = List<Map<String, dynamic>>.from(response);
-      
+
       // Fetch stations to get names
-      final stationsRes = await supabase.from('stations').select('station_id, name');
+      final stationsRes = await supabase
+          .from('stations')
+          .select('station_id, name');
       final stationsMap = {
-        for (var s in stationsRes) s['station_id'].toString(): s['name'].toString()
+        for (var s in stationsRes)
+          s['station_id'].toString(): s['name'].toString(),
       };
 
       return users.map((u) {
         final sCode = u['station_code']?.toString();
         return {
           ...u,
-          'station_name': sCode == 'ALL' ? 'ALL STATIONS' : (stationsMap[sCode] ?? 'Unknown'),
+          'station_name': sCode == 'ALL'
+              ? 'ALL STATIONS'
+              : (stationsMap[sCode] ?? 'Unknown'),
         };
       }).toList();
     } catch (e) {
@@ -327,6 +346,7 @@ class HODataService {
           .from('auth')
           .select('db_host, db_user, db_pass, db_name, api_url')
           .eq('station_code', 'ALL')
+          .limit(1)
           .maybeSingle();
       return response;
     } catch (e) {
@@ -336,16 +356,44 @@ class HODataService {
   }
 
   Future<void> saveHOServerConfig(Map<String, dynamic> data) async {
-    await supabase
-        .from('auth')
-        .update(data)
-        .eq('station_code', 'ALL');
-    
+    await supabase.from('auth').update(data).eq('station_code', 'ALL');
+
     await logActivity(
       actionType: 'SYSTEM_CONFIG',
       description: 'Updated HO Server Configuration',
       metadata: data,
     );
+  }
+
+  Future<String> getHOConfigPassword() async {
+    try {
+      final response = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('key', 'ho_config_password')
+          .maybeSingle();
+      return response?['value'] ?? 'msloyalty@ho';
+    } catch (e) {
+      print("Error fetching HO Password: $e");
+      return 'msloyalty@ho';
+    }
+  }
+
+  Future<void> updateHOConfigPassword(String newPassword) async {
+    try {
+      await supabase
+          .from('system_settings')
+          .update({'value': newPassword})
+          .eq('key', 'ho_config_password');
+      
+      await logActivity(
+        actionType: 'UPDATE_HO_PASSWORD',
+        description: 'Updated HO Configuration Password',
+      );
+    } catch (e) {
+      print("Error updating HO Password: $e");
+      throw e;
+    }
   }
 
   Future<List<Map<String, dynamic>>> getHOUsers() async {
@@ -381,7 +429,10 @@ class HODataService {
   }
 
   // ── HO Login ──────────────────────────────────────────────────────
-  Future<Map<String, dynamic>?> loginHOUser(String username, String password) async {
+  Future<Map<String, dynamic>?> loginHOUser(
+    String username,
+    String password,
+  ) async {
     try {
       final response = await supabase
           .from('ho_auth')
@@ -407,8 +458,12 @@ class HODataService {
   // ── Dashboard Chart Data ──────────────────────────────────────────
   Future<Map<String, dynamic>> getDashboardChartData() async {
     // 1. Points Issued by Station
-    final stationsRes = await supabase.from('stations').select('station_id, name');
-    final txnsRes = await supabase.from('fuel_transactions').select('station_id, points_earned');
+    final stationsRes = await supabase
+        .from('stations')
+        .select('station_id, name');
+    final txnsRes = await supabase
+        .from('fuel_transactions')
+        .select('station_id, points_earned');
 
     Map<String, double> stationPoints = {};
     Map<String, String> stationIdToName = {};
@@ -429,12 +484,16 @@ class HODataService {
     List<Map<String, dynamic>> pointsByStation = stationPoints.entries
         .map((e) => {'name': e.key, 'value': e.value})
         .toList();
-    
+
     // Sort by points descending
-    pointsByStation.sort((a, b) => (b['value'] as double).compareTo(a['value'] as double));
+    pointsByStation.sort(
+      (a, b) => (b['value'] as double).compareTo(a['value'] as double),
+    );
 
     // 2. Fuel Type Distribution (Count)
-    final fuelTypesRes = await supabase.from('fuel_transactions').select('fuel_type');
+    final fuelTypesRes = await supabase
+        .from('fuel_transactions')
+        .select('fuel_type');
     Map<String, int> fuelCounts = {};
     for (var txn in fuelTypesRes) {
       final type = txn['fuel_type'] ?? 'Other';
@@ -452,9 +511,12 @@ class HODataService {
   }
 
   // ── HO Reporting Data Fetchers ─────────────────────────────────────
-  
+
   Future<List<Map<String, dynamic>>> getStationsForDropdown() async {
-    final response = await supabase.from('stations').select('id, station_id, name').order('name');
+    final response = await supabase
+        .from('stations')
+        .select('id, station_id, name')
+        .order('name');
     return List<Map<String, dynamic>>.from(response);
   }
 
@@ -469,11 +531,11 @@ class HODataService {
         .select('*')
         .gte('created_at', startDate.toUtc().toIso8601String())
         .lte('created_at', endDate.toUtc().toIso8601String());
-        
+
     if (stationId != null && stationId.isNotEmpty) {
       query = query.eq('station_id', stationId);
     }
-    
+
     final response = await query.order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }
@@ -490,11 +552,11 @@ class HODataService {
         .gte('created_at', startDate.toUtc().toIso8601String())
         .lte('created_at', endDate.toUtc().toIso8601String())
         .gt('points_earned', 0);
-        
+
     if (stationId != null && stationId.isNotEmpty) {
       query = query.eq('station_id', stationId);
     }
-    
+
     final response = await query.order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }
@@ -507,14 +569,16 @@ class HODataService {
   }) async {
     var query = supabase
         .from('redemption_history')
-        .select('*, profiles(full_name, phone_number), gift_cards(title, points_required)')
+        .select(
+          '*, profiles(full_name, phone_number), gift_cards(title, points_required)',
+        )
         .gte('created_at', startDate.toUtc().toIso8601String())
         .lte('created_at', endDate.toUtc().toIso8601String());
-        
+
     if (stationId != null && stationId.isNotEmpty) {
       query = query.eq('station_id', stationId);
     }
-    
+
     final response = await query.order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }
@@ -538,34 +602,32 @@ class HODataService {
     required int premiumDiesel,
   }) async {
     final Map<String, dynamic> data = {
-      if (id != null) 'id': id,
+      'id': ?id,
       'octane_92': octane92,
       'octane_95': octane95,
       'diesel': diesel,
       'premium_diesel': premiumDiesel,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
-    
+
     if (region != null) data['region'] = region;
     if (stationId != null) data['station_id'] = stationId;
 
-
     // Use upsert with conflict resolution based on the new unique indexes
-    await supabase.from('fuel_prices').upsert(
-      data,
-      onConflict: id != null ? 'id' : (region != null ? 'region' : 'station_id'),
-    );
+    await supabase
+        .from('fuel_prices')
+        .upsert(
+          data,
+          onConflict: id != null
+              ? 'id'
+              : (region != null ? 'region' : 'station_id'),
+        );
 
     await logActivity(
       actionType: 'SYSTEM_CONFIG',
       description: 'Updated fuel prices for ${region ?? "Station $stationId"}',
       metadata: data,
     );
-
-
-
-
-
   }
 
   Future<void> deleteFuelPrice(int id) async {
@@ -588,11 +650,17 @@ class HODataService {
 
   Future<void> updateAppSetting(String key, String value) async {
     // Upsert equivalent since we might insert newly
-    final existing = await supabase.from('app_settings').select('key').eq('key', key);
+    final existing = await supabase
+        .from('app_settings')
+        .select('key')
+        .eq('key', key);
     if (existing.isEmpty) {
       await supabase.from('app_settings').insert({'key': key, 'value': value});
     } else {
-      await supabase.from('app_settings').update({'value': value}).eq('key', key);
+      await supabase
+          .from('app_settings')
+          .update({'value': value})
+          .eq('key', key);
     }
     await logActivity(
       actionType: 'SYSTEM_CONFIG',
@@ -602,7 +670,10 @@ class HODataService {
 
   // ── Regions ───────────────────────────────────────────────────────
   Future<List<String>> getRegions() async {
-    final response = await supabase.from('regions').select('name').order('name');
+    final response = await supabase
+        .from('regions')
+        .select('name')
+        .order('name');
     return (response as List).map((r) => r['name'].toString()).toList();
   }
 
@@ -635,7 +706,8 @@ class HODataService {
     await supabase.from('app_versions').insert(data);
     await logActivity(
       actionType: 'SYSTEM_CONFIG',
-      description: 'Created new app version: ${data['version_code']} (${data['build_number']})',
+      description:
+          'Created new app version: ${data['version_code']} (${data['build_number']})',
       metadata: data,
     );
   }
@@ -699,7 +771,10 @@ class HODataService {
   }
 
   Future<void> clearMobileNotificationHistory() async {
-    await supabase.from('mobile_notifications').delete().neq('title', '___DISALLOW_MATCH___'); // Delete all
+    await supabase
+        .from('mobile_notifications')
+        .delete()
+        .neq('title', '___DISALLOW_MATCH___'); // Delete all
     await logActivity(
       actionType: 'SYSTEM_CONFIG',
       description: 'Cleared all broadcast notification history',
@@ -718,9 +793,12 @@ class HODataService {
   Future<void> updateSystemSetting(String key, String value) async {
     await supabase
         .from('system_settings')
-        .update({'value': value, 'updated_at': DateTime.now().toUtc().toIso8601String()})
+        .update({
+          'value': value,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
         .eq('key', key);
-    
+
     await logActivity(
       actionType: 'SYSTEM_CONFIG',
       description: 'Updated system content: $key',
@@ -734,14 +812,10 @@ class HODataService {
         .select('*')
         .limit(1)
         .maybeSingle();
-    
+
     if (response == null) {
       // Return defaults if somehow missing
-      return {
-        'point_expiry_days': 365,
-        'pipd': 1,
-        'points_per_liter': 1.0,
-      };
+      return {'point_expiry_days': 365, 'pipd': 1, 'points_per_liter': 1.0};
     }
     return response;
   }
@@ -755,12 +829,15 @@ class HODataService {
     final id = settings['id'];
 
     if (id != null) {
-      await supabase.from('points_settings').update({
-        'point_expiry_days': pointExpiryDays,
-        'pipd': pipd,
-        'points_per_liter': pointsPerLiter,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', id);
+      await supabase
+          .from('points_settings')
+          .update({
+            'point_expiry_days': pointExpiryDays,
+            'pipd': pipd,
+            'points_per_liter': pointsPerLiter,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', id);
     } else {
       await supabase.from('points_settings').insert({
         'point_expiry_days': pointExpiryDays,
@@ -771,7 +848,8 @@ class HODataService {
 
     await logActivity(
       actionType: 'SYSTEM_CONFIG',
-      description: 'Updated points settings: Expiry $pointExpiryDays days, PIPD $pipd, Rate $pointsPerLiter points/L',
+      description:
+          'Updated points settings: Expiry $pointExpiryDays days, PIPD $pipd, Rate $pointsPerLiter points/L',
     );
   }
 
@@ -812,11 +890,13 @@ class HODataService {
 
   Future<String?> uploadAdImage(Uint8List bytes, String extension) async {
     final fileName = 'ads/${DateTime.now().millisecondsSinceEpoch}.$extension';
-    await supabase.storage.from('moonsun_assets').uploadBinary(
-      fileName, 
-      bytes,
-      fileOptions: FileOptions(contentType: 'image/$extension')
-    );
+    await supabase.storage
+        .from('moonsun_assets')
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: FileOptions(contentType: 'image/$extension'),
+        );
     return supabase.storage.from('moonsun_assets').getPublicUrl(fileName);
   }
 
@@ -856,50 +936,106 @@ class HODataService {
   }
 
   Future<String?> uploadIntroVideo(Uint8List bytes, String extension) async {
-    final fileName = 'intro/${DateTime.now().millisecondsSinceEpoch}.$extension';
-    await supabase.storage.from('moonsun_assets').uploadBinary(
-      fileName, 
-      bytes,
-      fileOptions: FileOptions(contentType: 'video/$extension'),
-    );
+    final fileName =
+        'intro/${DateTime.now().millisecondsSinceEpoch}.$extension';
+    await supabase.storage
+        .from('moonsun_assets')
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: FileOptions(contentType: 'video/$extension'),
+        );
     return supabase.storage.from('moonsun_assets').getPublicUrl(fileName);
   }
 
-  Future<String?> uploadIntroThumbnail(Uint8List bytes, String extension) async {
-    final fileName = 'intro/thumbs/${DateTime.now().millisecondsSinceEpoch}.$extension';
-    await supabase.storage.from('moonsun_assets').uploadBinary(
-      fileName, 
-      bytes,
-      fileOptions: FileOptions(contentType: 'image/$extension')
-    );
+  Future<String?> uploadIntroThumbnail(
+    Uint8List bytes,
+    String extension,
+  ) async {
+    final fileName =
+        'intro/thumbs/${DateTime.now().millisecondsSinceEpoch}.$extension';
+    await supabase.storage
+        .from('moonsun_assets')
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: FileOptions(contentType: 'image/$extension'),
+        );
     return supabase.storage.from('moonsun_assets').getPublicUrl(fileName);
   }
 
   // ── Customer Feedback Monitoring ─────────────────────────────────
-  Future<List<Map<String, dynamic>>> getCustomerFeedback({int limit = 100}) async {
-    final response = await supabase
+  Future<List<Map<String, dynamic>>> getCustomerFeedback({
+    int limit = 100,
+    String? stationId,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? invoiceNo,
+    String? memberName,
+  }) async {
+    var query = supabase
         .from('fuel_transactions')
         .select('*, profiles(full_name, phone_number)')
-        .not('customer_rating', 'is', null)
+        .not('customer_rating', 'is', null);
+
+    if (stationId != null && stationId.isNotEmpty && stationId != 'ALL') {
+      query = query.eq('station_id', stationId);
+    }
+
+    if (startDate != null) {
+      query = query.gte('created_at', startDate.toUtc().toIso8601String());
+    }
+
+    if (endDate != null) {
+      // Set to end of day
+      final end = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+      query = query.lte('created_at', end.toUtc().toIso8601String());
+    }
+
+    if (invoiceNo != null && invoiceNo.isNotEmpty) {
+      query = query.ilike('voc_no', '%$invoiceNo%');
+    }
+
+    final response = await query
         .order('created_at', ascending: false)
         .limit(limit);
-    return List<Map<String, dynamic>>.from(response);
+
+    var data = List<Map<String, dynamic>>.from(response);
+
+    // Member search (fuzzy search on name/phone in memory if needed, 
+    // or we could try filtering on joined column if Supabase version supports it easily)
+    if (memberName != null && memberName.isNotEmpty) {
+      data = data.where((item) {
+        final profile = item['profiles'] as Map<String, dynamic>?;
+        final name = (profile?['full_name'] as String?)?.toLowerCase() ?? '';
+        final phone = (profile?['phone_number'] as String?)?.toLowerCase() ?? '';
+        final search = memberName.toLowerCase();
+        return name.contains(search) || phone.contains(search);
+      }).toList();
+    }
+
+    return data;
   }
 
-  RealtimeChannel subscribeToFeedback(void Function(PostgresChangeEvent event, Map<String, dynamic> record) callback) {
+  RealtimeChannel subscribeToFeedback(
+    void Function(PostgresChangeEvent event, Map<String, dynamic> record)
+    callback,
+  ) {
     final channel = supabase.channel('public:fuel_transactions_feedback');
-    
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.update,
-      schema: 'public',
-      table: 'fuel_transactions',
-      callback: (payload) {
-        // Only trigger if rating or remark was updated
-        if (payload.newRecord['customer_rating'] != null) {
-          callback(payload.eventType, payload.newRecord);
-        }
-      },
-    ).subscribe();
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'fuel_transactions',
+          callback: (payload) {
+            // Only trigger if rating or remark was updated
+            if (payload.newRecord['customer_rating'] != null) {
+              callback(payload.eventType, payload.newRecord);
+            }
+          },
+        )
+        .subscribe();
 
     return channel;
   }

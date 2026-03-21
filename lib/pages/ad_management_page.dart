@@ -35,9 +35,9 @@ class _AdManagementPageState extends State<AdManagementPage> {
         _introVideos = introData;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading ads: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading ads: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -46,20 +46,15 @@ class _AdManagementPageState extends State<AdManagementPage> {
   void _showEditDialog([Map<String, dynamic>? ad]) {
     showDialog(
       context: context,
-      builder: (context) => _AdEditDialog(
-        ad: ad,
-        onSave: () => _loadAds(),
-      ),
+      builder: (context) => _AdEditDialog(ad: ad, onSave: () => _loadAds()),
     );
   }
 
   void _showIntroEditDialog([Map<String, dynamic>? video]) {
     showDialog(
       context: context,
-      builder: (context) => _IntroVideoEditDialog(
-        video: video,
-        onSave: () => _loadAds(),
-      ),
+      builder: (context) =>
+          _IntroVideoEditDialog(video: video, onSave: () => _loadAds()),
     );
   }
 
@@ -68,9 +63,14 @@ class _AdManagementPageState extends State<AdManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Delete'),
-        content: const Text('Are you sure you want to delete this intro video?'),
+        content: const Text(
+          'Are you sure you want to delete this intro video?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -96,9 +96,14 @@ class _AdManagementPageState extends State<AdManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Delete'),
-        content: const Text('Are you sure you want to delete this advertisement?'),
+        content: const Text(
+          'Are you sure you want to delete this advertisement?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -112,9 +117,9 @@ class _AdManagementPageState extends State<AdManagementPage> {
         await _dataService.deleteAdvertisement(id);
         _loadAds();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting ad: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting ad: $e')));
       }
     }
   }
@@ -130,7 +135,11 @@ class _AdManagementPageState extends State<AdManagementPage> {
           elevation: 0,
           title: const Text(
             'Promotion & Media',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           bottom: const TabBar(
             tabs: [
@@ -154,13 +163,20 @@ class _AdManagementPageState extends State<AdManagementPage> {
                     children: [
                       const Text(
                         'Splash AD Management',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       ElevatedButton.icon(
                         onPressed: () => _showEditDialog(),
                         icon: const Icon(Icons.add),
                         label: const Text('Add Advertisement'),
-                        style: ElevatedButton.styleFrom(backgroundColor: HOColors.accent, foregroundColor: Colors.white),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HOColors.accent,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -169,24 +185,30 @@ class _AdManagementPageState extends State<AdManagementPage> {
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _ads.isEmpty
-                            ? const Center(child: Text('No advertisements found', style: TextStyle(color: Colors.white70)))
-                            : GridView.builder(
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        ? const Center(
+                            child: Text(
+                              'No advertisements found',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          )
+                        : GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
                                   crossAxisSpacing: 20,
                                   mainAxisSpacing: 20,
                                   childAspectRatio: 0.8,
                                 ),
-                                itemCount: _ads.length,
-                                itemBuilder: (context, index) {
-                                  final ad = _ads[index];
-                                  return _AdCard(
-                                    ad: ad,
-                                    onEdit: () => _showEditDialog(ad),
-                                    onDelete: () => _deleteAd(ad['id']),
-                                  );
-                                },
-                              ),
+                            itemCount: _ads.length,
+                            itemBuilder: (context, index) {
+                              final ad = _ads[index];
+                              return _AdCard(
+                                ad: ad,
+                                onEdit: () => _showEditDialog(ad),
+                                onDelete: () => _deleteAd(ad['id']),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -203,13 +225,20 @@ class _AdManagementPageState extends State<AdManagementPage> {
                     children: [
                       const Text(
                         'Welcome Intro Management',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       ElevatedButton.icon(
                         onPressed: () => _showIntroEditDialog(),
                         icon: const Icon(Icons.video_call),
                         label: const Text('Add Intro Video'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -218,24 +247,30 @@ class _AdManagementPageState extends State<AdManagementPage> {
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _introVideos.isEmpty
-                            ? const Center(child: Text('No intro videos found. Default video will be used.', style: TextStyle(color: Colors.white70)))
-                            : GridView.builder(
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        ? const Center(
+                            child: Text(
+                              'No intro videos found. Default video will be used.',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          )
+                        : GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
                                   crossAxisSpacing: 20,
                                   mainAxisSpacing: 20,
                                   childAspectRatio: 1.2,
                                 ),
-                                itemCount: _introVideos.length,
-                                itemBuilder: (context, index) {
-                                  final video = _introVideos[index];
-                                  return _IntroVideoCard(
-                                    video: video,
-                                    onEdit: () => _showIntroEditDialog(video),
-                                    onDelete: () => _deleteIntroVideo(video['id']),
-                                  );
-                                },
-                              ),
+                            itemCount: _introVideos.length,
+                            itemBuilder: (context, index) {
+                              final video = _introVideos[index];
+                              return _IntroVideoCard(
+                                video: video,
+                                onEdit: () => _showIntroEditDialog(video),
+                                onDelete: () => _deleteIntroVideo(video['id']),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -290,7 +325,11 @@ class _AdCard extends StatelessWidget {
                 CircleAvatar(
                   backgroundColor: Colors.black54,
                   child: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
                     onPressed: onDelete,
                   ),
                 ),
@@ -320,7 +359,9 @@ class _AdCard extends StatelessWidget {
                       Text(
                         ad['is_active'] ? 'ACTIVE' : 'INACTIVE',
                         style: TextStyle(
-                          color: ad['is_active'] ? Colors.greenAccent : Colors.white38,
+                          color: ad['is_active']
+                              ? Colors.greenAccent
+                              : Colors.white38,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -366,7 +407,9 @@ class _AdEditDialogState extends State<_AdEditDialog> {
   @override
   void initState() {
     super.initState();
-    _durationController = TextEditingController(text: (widget.ad?['duration'] ?? 5).toString());
+    _durationController = TextEditingController(
+      text: (widget.ad?['duration'] ?? 5).toString(),
+    );
     _isActive = widget.ad?['is_active'] ?? true;
     _imageUrl = widget.ad?['image_url'];
   }
@@ -377,7 +420,7 @@ class _AdEditDialogState extends State<_AdEditDialog> {
         type: FileType.image,
         withData: true,
       );
-      
+
       if (result != null && result.files.isNotEmpty) {
         setState(() {
           _previewBytes = result.files.first.bytes;
@@ -391,9 +434,9 @@ class _AdEditDialogState extends State<_AdEditDialog> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_previewBytes == null && _imageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an image')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select an image')));
       return;
     }
 
@@ -450,7 +493,11 @@ class _AdEditDialogState extends State<_AdEditDialog> {
               children: [
                 Text(
                   widget.ad == null ? 'Add Splash AD' : 'Edit Splash AD',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 GestureDetector(
@@ -462,18 +509,31 @@ class _AdEditDialogState extends State<_AdEditDialog> {
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(16),
                       image: _previewBytes != null
-                          ? DecorationImage(image: MemoryImage(_previewBytes!), fit: BoxFit.contain)
+                          ? DecorationImage(
+                              image: MemoryImage(_previewBytes!),
+                              fit: BoxFit.contain,
+                            )
                           : (_imageUrl != null
-                              ? DecorationImage(image: NetworkImage(_imageUrl!), fit: BoxFit.contain)
-                              : null),
+                                ? DecorationImage(
+                                    image: NetworkImage(_imageUrl!),
+                                    fit: BoxFit.contain,
+                                  )
+                                : null),
                     ),
                     child: (_previewBytes == null && _imageUrl == null)
                         ? const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo, size: 40, color: Colors.white54),
+                              Icon(
+                                Icons.add_a_photo,
+                                size: 40,
+                                color: Colors.white54,
+                              ),
                               SizedBox(height: 8),
-                              Text('Select AD Image (Portrait recommended)', style: TextStyle(color: Colors.white54)),
+                              Text(
+                                'Select AD Image (Portrait recommended)',
+                                style: TextStyle(color: Colors.white54),
+                              ),
                             ],
                           )
                         : null,
@@ -489,7 +549,9 @@ class _AdEditDialogState extends State<_AdEditDialog> {
                     labelStyle: const TextStyle(color: Colors.white54),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   validator: (val) {
                     if (val == null || val.isEmpty) return 'Required';
@@ -499,25 +561,40 @@ class _AdEditDialogState extends State<_AdEditDialog> {
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(
-                  title: const Text('Is Active', style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'Is Active',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   value: _isActive,
                   onChanged: (val) => setState(() => _isActive = val),
-                  activeColor: HOColors.accent,
+                  activeThumbColor: HOColors.accent,
                 ),
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
                     const SizedBox(width: 16),
                     ElevatedButton(
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: HOColors.accent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
                       ),
-                      child: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save'),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Save'),
                     ),
                   ],
                 ),
@@ -575,7 +652,11 @@ class _IntroVideoCard extends StatelessWidget {
                 CircleAvatar(
                   backgroundColor: Colors.black54,
                   child: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
                     onPressed: onDelete,
                   ),
                 ),
@@ -605,7 +686,9 @@ class _IntroVideoCard extends StatelessWidget {
                       Text(
                         video['is_active'] ? 'ACTIVE' : 'INACTIVE',
                         style: TextStyle(
-                          color: video['is_active'] ? Colors.greenAccent : Colors.white38,
+                          color: video['is_active']
+                              ? Colors.greenAccent
+                              : Colors.white38,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -613,7 +696,10 @@ class _IntroVideoCard extends StatelessWidget {
                       if (video['duration'] != null)
                         Text(
                           '${video['duration']}s',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
                         ),
                     ],
                   ),
@@ -664,7 +750,7 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
     _videoUrl = widget.video?['video_url'];
     _thumbnailUrl = widget.video?['thumbnail_url'];
     _duration = widget.video?['duration'];
-    
+
     if (_videoUrl != null) {
       _initRemoteVideo();
     }
@@ -689,7 +775,7 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
         type: FileType.video,
         withData: true,
       );
-      
+
       if (result != null && result.files.isNotEmpty) {
         final bytes = result.files.first.bytes;
         if (bytes != null) {
@@ -697,7 +783,7 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
             _videoBytes = bytes;
             _videoExtension = result.files.first.extension;
           });
-          
+
           // Temporary file for video_player to read duration and preview
           // Since it's web/desktop dashboard, we can use networkUrl with data URI if needed
           // or blob URL if on web. But for simplicity, we'll try to get duration.
@@ -716,7 +802,7 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
         type: FileType.image,
         withData: true,
       );
-      
+
       if (result != null && result.files.isNotEmpty) {
         setState(() {
           _thumbnailBytes = result.files.first.bytes;
@@ -740,12 +826,18 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
     try {
       String? finalVideoUrl = _videoUrl;
       if (_videoBytes != null) {
-        finalVideoUrl = await _dataService.uploadIntroVideo(_videoBytes!, _videoExtension ?? 'mp4');
+        finalVideoUrl = await _dataService.uploadIntroVideo(
+          _videoBytes!,
+          _videoExtension ?? 'mp4',
+        );
       }
 
       String? finalThumbnailUrl = _thumbnailUrl;
       if (_thumbnailBytes != null) {
-        finalThumbnailUrl = await _dataService.uploadIntroThumbnail(_thumbnailBytes!, _thumbnailExtension ?? 'png');
+        finalThumbnailUrl = await _dataService.uploadIntroThumbnail(
+          _thumbnailBytes!,
+          _thumbnailExtension ?? 'png',
+        );
       }
 
       final data = {
@@ -765,9 +857,9 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving intro video: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving intro video: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -793,15 +885,27 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  widget.video == null ? 'Add Welcome Video' : 'Edit Welcome Video',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  widget.video == null
+                      ? 'Add Welcome Video'
+                      : 'Edit Welcome Video',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Video Picker/Preview
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Video File', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'Video File',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
@@ -812,28 +916,44 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
                     decoration: BoxDecoration(
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _videoBytes != null ? Colors.blueAccent : Colors.white10),
+                      border: Border.all(
+                        color: _videoBytes != null
+                            ? Colors.blueAccent
+                            : Colors.white10,
+                      ),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _videoBytes != null || _videoUrl != null ? Icons.videocam : Icons.video_call,
+                          _videoBytes != null || _videoUrl != null
+                              ? Icons.videocam
+                              : Icons.video_call,
                           size: 32,
-                          color: _videoBytes != null ? Colors.blueAccent : Colors.white54,
+                          color: _videoBytes != null
+                              ? Colors.blueAccent
+                              : Colors.white54,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _videoBytes != null 
-                              ? 'New Video Selected: ${_videoBytes!.lengthInBytes ~/ 1024} KB' 
-                              : (_videoUrl != null ? 'Existing Video Attached' : 'Select Video File (MP4)'),
-                          style: TextStyle(color: _videoBytes != null ? Colors.blueAccent : Colors.white54, fontSize: 13),
+                          _videoBytes != null
+                              ? 'New Video Selected: ${_videoBytes!.lengthInBytes ~/ 1024} KB'
+                              : (_videoUrl != null
+                                    ? 'Existing Video Attached'
+                                    : 'Select Video File (MP4)'),
+                          style: TextStyle(
+                            color: _videoBytes != null
+                                ? Colors.blueAccent
+                                : Colors.white54,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                if (_videoController != null && _videoController!.value.isInitialized)
+                if (_videoController != null &&
+                    _videoController!.value.isInitialized)
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: Column(
@@ -846,7 +966,9 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
                               VideoPlayer(_videoController!),
                               IconButton(
                                 icon: Icon(
-                                  _videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                  _videoController!.value.isPlaying
+                                      ? Icons.pause
+                                      : Icons.play_arrow,
                                   color: Colors.white,
                                   size: 40,
                                 ),
@@ -862,7 +984,10 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text('Previewing Remote Video', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                        const Text(
+                          'Previewing Remote Video',
+                          style: TextStyle(color: Colors.white38, fontSize: 11),
+                        ),
                       ],
                     ),
                   ),
@@ -871,7 +996,13 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
                 // Thumbnail Picker
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Video Thumbnail', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'Video Thumbnail',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
@@ -883,18 +1014,34 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(16),
                       image: _thumbnailBytes != null
-                          ? DecorationImage(image: MemoryImage(_thumbnailBytes!), fit: BoxFit.cover)
+                          ? DecorationImage(
+                              image: MemoryImage(_thumbnailBytes!),
+                              fit: BoxFit.cover,
+                            )
                           : (_thumbnailUrl != null
-                              ? DecorationImage(image: NetworkImage(_thumbnailUrl!), fit: BoxFit.cover)
-                              : null),
+                                ? DecorationImage(
+                                    image: NetworkImage(_thumbnailUrl!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null),
                     ),
                     child: (_thumbnailBytes == null && _thumbnailUrl == null)
                         ? const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo, size: 32, color: Colors.white54),
+                              Icon(
+                                Icons.add_a_photo,
+                                size: 32,
+                                color: Colors.white54,
+                              ),
                               SizedBox(height: 8),
-                              Text('Select/Upload Thumbnail', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                              Text(
+                                'Select/Upload Thumbnail',
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ],
                           )
                         : null,
@@ -905,12 +1052,19 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
                 // Duration Input
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Duration (Seconds)', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'Duration (Seconds)',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: _duration?.toString(),
-                  onChanged: (val) => setState(() => _duration = int.tryParse(val)),
+                  onChanged: (val) =>
+                      setState(() => _duration = int.tryParse(val)),
                   style: const TextStyle(color: Colors.white),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
@@ -918,33 +1072,51 @@ class _IntroVideoEditDialogState extends State<_IntroVideoEditDialog> {
                     hintStyle: const TextStyle(color: Colors.white24),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 SwitchListTile(
-                  title: const Text('Is Active', style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'Is Active',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   value: _isActive,
                   onChanged: (val) => setState(() => _isActive = val),
-                  activeColor: Colors.blueAccent,
+                  activeThumbColor: Colors.blueAccent,
                 ),
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
                     const SizedBox(width: 16),
                     ElevatedButton(
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
                       ),
-                      child: _isSaving 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
-                        : const Text('Save'),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Save'),
                     ),
                   ],
                 ),

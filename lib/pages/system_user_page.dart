@@ -10,7 +10,8 @@ class SystemUserPage extends StatefulWidget {
   State<SystemUserPage> createState() => _SystemUserPageState();
 }
 
-class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProviderStateMixin {
+class _SystemUserPageState extends State<SystemUserPage>
+    with SingleTickerProviderStateMixin {
   final HODataService _dataService = HODataService();
   late TabController _tabController;
   bool _isLoading = true;
@@ -34,9 +35,9 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
         _hoUsers = ho;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading users: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading users: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -45,11 +46,8 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
   void _showEditDialog([Map<String, dynamic>? user, bool isHO = false]) {
     showDialog(
       context: context,
-      builder: (context) => _UserEditDialog(
-        user: user,
-        isHO: isHO,
-        onSave: () => _loadUsers(),
-      ),
+      builder: (context) =>
+          _UserEditDialog(user: user, isHO: isHO, onSave: () => _loadUsers()),
     );
   }
 
@@ -57,6 +55,13 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
     showDialog(
       context: context,
       builder: (context) => const _HOServerConfigDialog(),
+    );
+  }
+
+  void _showHOSetupPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => const _HOSetupPasswordDialog(),
     );
   }
 
@@ -76,7 +81,11 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
               children: [
                 const Text(
                   'System User Management',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 Row(
                   children: [
@@ -87,7 +96,24 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.indigo.shade700,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: _showHOSetupPasswordDialog,
+                      icon: const Icon(Icons.vpn_key),
+                      label: const Text('Setup Password'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -98,7 +124,10 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueGrey.shade700,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -109,7 +138,10 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
                       style: ElevatedButton.styleFrom(
                         backgroundColor: HOColors.accent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -142,11 +174,18 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
                     decoration: InputDecoration(
                       hintText: 'Search by username or station...',
                       hintStyle: const TextStyle(color: Colors.white38),
-                      prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Colors.white38,
+                        size: 18,
+                      ),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.05),
                       contentPadding: EdgeInsets.zero,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
@@ -154,25 +193,25 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: _isLoading 
-                ? const Center(child: CircularProgressIndicator())
-                : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _UserList(
-                      users: _filterUsers(_stationUsers), 
-                      isHO: false, 
-                      onEdit: (u) => _showEditDialog(u, false), 
-                      onRefresh: _loadUsers
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _UserList(
+                          users: _filterUsers(_stationUsers),
+                          isHO: false,
+                          onEdit: (u) => _showEditDialog(u, false),
+                          onRefresh: _loadUsers,
+                        ),
+                        _UserList(
+                          users: _filterUsers(_hoUsers),
+                          isHO: true,
+                          onEdit: (u) => _showEditDialog(u, true),
+                          onRefresh: _loadUsers,
+                        ),
+                      ],
                     ),
-                    _UserList(
-                      users: _filterUsers(_hoUsers), 
-                      isHO: true, 
-                      onEdit: (u) => _showEditDialog(u, true), 
-                      onRefresh: _loadUsers
-                    ),
-                  ],
-                ),
             ),
           ],
         ),
@@ -187,11 +226,11 @@ class _SystemUserPageState extends State<SystemUserPage> with SingleTickerProvid
       final fullname = (u['fullname'] ?? '').toString().toLowerCase();
       final stationName = (u['station_name'] ?? '').toString().toLowerCase();
       final stationCode = (u['station_code'] ?? '').toString().toLowerCase();
-      
-      return username.contains(_searchQuery.toLowerCase()) || 
-             fullname.contains(_searchQuery.toLowerCase()) || 
-             stationName.contains(_searchQuery.toLowerCase()) || 
-             stationCode.contains(_searchQuery.toLowerCase());
+
+      return username.contains(_searchQuery.toLowerCase()) ||
+          fullname.contains(_searchQuery.toLowerCase()) ||
+          stationName.contains(_searchQuery.toLowerCase()) ||
+          stationCode.contains(_searchQuery.toLowerCase());
     }).toList();
   }
 }
@@ -202,12 +241,19 @@ class _UserList extends StatelessWidget {
   final Function(Map<String, dynamic>) onEdit;
   final VoidCallback onRefresh;
 
-  const _UserList({required this.users, required this.isHO, required this.onEdit, required this.onRefresh});
+  const _UserList({
+    required this.users,
+    required this.isHO,
+    required this.onEdit,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (users.isEmpty) {
-      return const Center(child: Text('No users found', style: TextStyle(color: Colors.white38)));
+      return const Center(
+        child: Text('No users found', style: TextStyle(color: Colors.white38)),
+      );
     }
 
     return Card(
@@ -215,25 +261,47 @@ class _UserList extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListView.separated(
         itemCount: users.length,
-        separatorBuilder: (context, index) => Divider(color: Colors.white.withOpacity(0.05)),
+        separatorBuilder: (context, index) =>
+            Divider(color: Colors.white.withOpacity(0.05)),
         itemBuilder: (context, index) {
           final user = users[index];
           return ListTile(
-            title: Text(user['fullname'] ?? 'Unknown', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text('Username: ${user['username']} | ${isHO ? "HO Admin" : "Station: ${user["station_name"] ?? user["station_code"] ?? "N/A"}"}', style: const TextStyle(color: Colors.white54)),
+            title: Text(
+              user['fullname'] ?? 'Unknown',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(
+              'Username: ${user['username']} | ${isHO ? "HO Admin" : "Station: ${user["station_name"] ?? user["station_code"] ?? "N/A"}"}',
+              style: const TextStyle(color: Colors.white54),
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: HOColors.accent.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('Level ${user['userlevel']}', style: TextStyle(color: HOColors.accent, fontSize: 12)),
+                  child: Text(
+                    'Level ${user['userlevel']}',
+                    style: TextStyle(color: HOColors.accent, fontSize: 12),
+                  ),
                 ),
-                IconButton(icon: const Icon(Icons.edit, color: Colors.white70), onPressed: () => onEdit(user)),
-                IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteUser(context, user)),
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.white70),
+                  onPressed: () => onEdit(user),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: () => _deleteUser(context, user),
+                ),
               ],
             ),
           );
@@ -242,15 +310,26 @@ class _UserList extends StatelessWidget {
     );
   }
 
-  Future<void> _deleteUser(BuildContext context, Map<String, dynamic> user) async {
+  Future<void> _deleteUser(
+    BuildContext context,
+    Map<String, dynamic> user,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Delete'),
-        content: Text('Are you sure you want to delete user "${user['username']}"?'),
+        content: Text(
+          'Are you sure you want to delete user "${user['username']}"?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );
@@ -264,7 +343,9 @@ class _UserList extends StatelessWidget {
         }
         onRefresh();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -294,16 +375,40 @@ class _UserEditDialogState extends State<_UserEditDialog> {
   List<Map<String, dynamic>> _filteredStations = [];
   bool _isLoadingStations = false;
   final TextEditingController _searchController = TextEditingController();
+  
+  static const List<String> _stationScreens = [
+    'Dashboard',
+    'Collect Point',
+    'Reward Point',
+    'Reports',
+    'Loyalty Reports',
+    'Settings',
+  ];
+  Map<String, bool> _permissions = {};
 
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController(text: widget.user?['username'] ?? '');
-    _passwordController = TextEditingController(text: widget.user?['password'] ?? '');
-    _fullnameController = TextEditingController(text: widget.user?['fullname'] ?? '');
-    _stationCodeController = TextEditingController(text: widget.isHO ? 'ALL' : (widget.user?['station_code'] ?? ''));
-    _userLevel = widget.user?['userlevel'] ?? (widget.isHO ? 1 : 11);
+    _usernameController = TextEditingController(
+      text: widget.user?['username'] ?? '',
+    );
+    _passwordController = TextEditingController(
+      text: widget.user?['password'] ?? '',
+    );
+    _fullnameController = TextEditingController(
+      text: widget.user?['fullname'] ?? '',
+    );
+    _stationCodeController = TextEditingController(
+      text: widget.isHO ? 'ALL' : (widget.user?['station_code'] ?? ''),
+    );
+        _userLevel = widget.user?['userlevel'] ?? (widget.isHO ? 1 : 11);
     
+    // Initialize permissions
+    final existingPerms = widget.user?['permissions'] as Map<String, dynamic>? ?? {};
+    for (var screen in _stationScreens) {
+      _permissions[screen] = existingPerms[screen] == true;
+    }
+
     if (!widget.isHO) {
       _fetchStations();
     }
@@ -340,6 +445,7 @@ class _UserEditDialogState extends State<_UserEditDialog> {
 
       if (!widget.isHO) {
         data['station_code'] = _stationCodeController.text;
+        data['permissions'] = _permissions;
       }
 
       if (widget.user == null) {
@@ -359,7 +465,9 @@ class _UserEditDialogState extends State<_UserEditDialog> {
       widget.onSave();
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isSaving = false);
     }
@@ -386,8 +494,14 @@ class _UserEditDialogState extends State<_UserEditDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    widget.user == null ? 'Add System User' : 'Edit System User',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    widget.user == null
+                        ? 'Add System User'
+                        : 'Edit System User',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   _buildField('Username', _usernameController),
@@ -399,18 +513,35 @@ class _UserEditDialogState extends State<_UserEditDialog> {
                   if (!widget.isHO) ...[
                     _buildStationSelector(),
                     const SizedBox(height: 16),
+                    _buildPermissionsSection(),
+                    const SizedBox(height: 16),
                   ],
                   _buildLevelDropdown(),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
                       const SizedBox(width: 16),
                       ElevatedButton(
                         onPressed: _isSaving ? null : _save,
-                        style: ElevatedButton.styleFrom(backgroundColor: HOColors.accent, foregroundColor: Colors.white),
-                        child: _isSaving ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Save'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HOColors.accent,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Save'),
                       ),
                     ],
                   ),
@@ -449,7 +580,10 @@ class _UserEditDialogState extends State<_UserEditDialog> {
           decoration: InputDecoration(
             labelText: 'Assigned Station',
             labelStyle: const TextStyle(color: Colors.white54),
-            suffixIcon: const Icon(Icons.arrow_drop_down, color: HOColors.accent),
+            suffixIcon: const Icon(
+              Icons.arrow_drop_down,
+              color: HOColors.accent,
+            ),
             filled: true,
             fillColor: Colors.white.withOpacity(0.05),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -470,14 +604,23 @@ class _UserEditDialogState extends State<_UserEditDialog> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => Dialog(
           backgroundColor: HOColors.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Container(
             width: 400,
             height: 500,
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const Text('Select Station', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Select Station',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _searchController,
@@ -488,39 +631,64 @@ class _UserEditDialogState extends State<_UserEditDialog> {
                     prefixIcon: const Icon(Icons.search, color: Colors.white38),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onChanged: (v) {
                     setDialogState(() {
                       _filteredStations = _allStations
-                          .where((s) => s['name'].toString().toLowerCase().contains(v.toLowerCase()) || 
-                                       s['station_id'].toString().toLowerCase().contains(v.toLowerCase()))
+                          .where(
+                            (s) =>
+                                s['name'].toString().toLowerCase().contains(
+                                  v.toLowerCase(),
+                                ) ||
+                                s['station_id']
+                                    .toString()
+                                    .toLowerCase()
+                                    .contains(v.toLowerCase()),
+                          )
                           .toList();
                     });
                   },
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: _isLoadingStations 
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: _filteredStations.length,
-                        itemBuilder: (context, index) {
-                          final s = _filteredStations[index];
-                          final isAll = s['station_id'] == 'ALL';
-                          return ListTile(
-                            onTap: () {
-                              setState(() {
-                                _stationCodeController.text = s['station_id'].toString();
-                              });
-                              Navigator.pop(context);
-                            },
-                            title: Text(s['name'], style: TextStyle(color: isAll ? HOColors.accent : Colors.white)),
-                            subtitle: Text('Code: ${s['station_id']}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                            leading: Icon(isAll ? Icons.all_out : Icons.ev_station, color: isAll ? HOColors.accent : Colors.white38),
-                          );
-                        },
-                      ),
+                  child: _isLoadingStations
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          itemCount: _filteredStations.length,
+                          itemBuilder: (context, index) {
+                            final s = _filteredStations[index];
+                            final isAll = s['station_id'] == 'ALL';
+                            return ListTile(
+                              onTap: () {
+                                setState(() {
+                                  _stationCodeController.text = s['station_id']
+                                      .toString();
+                                });
+                                Navigator.pop(context);
+                              },
+                              title: Text(
+                                s['name'],
+                                style: TextStyle(
+                                  color: isAll ? HOColors.accent : Colors.white,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Code: ${s['station_id']}',
+                                style: const TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              leading: Icon(
+                                isAll ? Icons.all_out : Icons.ev_station,
+                                color: isAll ? HOColors.accent : Colors.white38,
+                              ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -544,9 +712,64 @@ class _UserEditDialogState extends State<_UserEditDialog> {
       ),
       items: const [
         DropdownMenuItem(value: 1, child: Text('Admin (Level 1)')),
+        DropdownMenuItem(value: 2, child: Text('Supervisor (Level 2)')),
         DropdownMenuItem(value: 11, child: Text('Staff (Level 11)')),
       ],
       onChanged: (val) => setState(() => _userLevel = val!),
+    );
+  }
+
+  Widget _buildPermissionsSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Station App Screen Permissions',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 4,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: _stationScreens.length,
+            itemBuilder: (context, index) {
+              final screen = _stationScreens[index];
+              return CheckboxListTile(
+                title: Text(
+                  screen,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+                value: _permissions[screen],
+                onChanged: (val) {
+                  setState(() => _permissions[screen] = val!);
+                },
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                activeColor: HOColors.accent,
+                checkColor: Colors.white,
+                controlAffinity: ListTileControlAffinity.leading,
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -607,7 +830,9 @@ class _HOServerConfigDialogState extends State<_HOServerConfigDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -628,64 +853,112 @@ class _HOServerConfigDialogState extends State<_HOServerConfigDialog> {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
-          child: _isLoading 
-            ? const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
-            : Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.settings_ethernet, color: HOColors.accent, size: 28),
-                          SizedBox(width: 12),
-                          Text(
-                            'HO Server Configuration',
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Set default connection details for "ALL STATIONS" users.',
-                        style: TextStyle(color: Colors.white54, fontSize: 13),
-                      ),
-                      const SizedBox(height: 32),
-                      _buildField('Server Host', _hostController, Icons.dns),
-                      const SizedBox(height: 16),
-                      _buildField('Database Username', _userController, Icons.person),
-                      const SizedBox(height: 16),
-                      _buildField('Database Password', _passController, Icons.lock, isPassword: true),
-                      const SizedBox(height: 16),
-                      _buildField('Database Name', _dbController, Icons.storage),
-                      const SizedBox(height: 16),
-                      _buildField('Local API URL', _apiController, Icons.link),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-                          const SizedBox(width: 16),
-                          ElevatedButton(
-                            onPressed: _isSaving ? null : _save,
-                            style: ElevatedButton.styleFrom(backgroundColor: HOColors.accent, foregroundColor: Colors.white),
-                            child: _isSaving 
-                              ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
-                              : const Text('Save Configuration'),
-                          ),
-                        ],
-                      ),
-                    ],
+          child: _isLoading
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.settings_ethernet,
+                              color: HOColors.accent,
+                              size: 28,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'HO Server Configuration',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Set default connection details for "ALL STATIONS" users.',
+                          style: TextStyle(color: Colors.white54, fontSize: 13),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildField('Server Host', _hostController, Icons.dns),
+                        const SizedBox(height: 16),
+                        _buildField(
+                          'Database Username',
+                          _userController,
+                          Icons.person,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildField(
+                          'Database Password',
+                          _passController,
+                          Icons.lock,
+                          isPassword: true,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildField(
+                          'Database Name',
+                          _dbController,
+                          Icons.storage,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildField(
+                          'Local API URL',
+                          _apiController,
+                          Icons.link,
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            const SizedBox(width: 16),
+                            ElevatedButton(
+                              onPressed: _isSaving ? null : _save,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: HOColors.accent,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      height: 16,
+                                      width: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text('Save Configuration'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
         ),
       ),
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, IconData icon, {bool isPassword = false}) {
+  Widget _buildField(
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    bool isPassword = false,
+  }) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword,
@@ -699,6 +972,127 @@ class _HOServerConfigDialogState extends State<_HOServerConfigDialog> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       validator: (v) => v!.isEmpty ? 'Required' : null,
+    );
+  }
+}
+
+class _HOSetupPasswordDialog extends StatefulWidget {
+  const _HOSetupPasswordDialog();
+
+  @override
+  State<_HOSetupPasswordDialog> createState() => _HOSetupPasswordDialogState();
+}
+
+class _HOSetupPasswordDialogState extends State<_HOSetupPasswordDialog> {
+  final HODataService _dataService = HODataService();
+  final _formKey = GlobalKey<FormState>();
+  final _passwordController = TextEditingController();
+  bool _isLoading = true;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentPassword();
+  }
+
+  Future<void> _loadCurrentPassword() async {
+    final pwd = await _dataService.getHOConfigPassword();
+    setState(() {
+      _passwordController.text = pwd;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isSaving = true);
+    try {
+      await _dataService.updateHOConfigPassword(_passwordController.text);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Setup Password Updated Successfully!'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating password: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 450),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: HOColors.surface.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: _isLoading
+              ? const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+              : Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.vpn_key, color: Colors.tealAccent, size: 28),
+                          SizedBox(width: 12),
+                          Text('HO Setup Password', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'This password is required by Station Apps during the "HO Config" setup process.',
+                        style: TextStyle(color: Colors.white54, fontSize: 13),
+                      ),
+                      const SizedBox(height: 32),
+                      TextFormField(
+                        controller: _passwordController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Configuration Password',
+                          labelStyle: const TextStyle(color: Colors.white54),
+                          prefixIcon: const Icon(Icons.lock, color: Colors.white38, size: 20),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        validator: (v) => v!.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: _isSaving ? null : _save,
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade700, foregroundColor: Colors.white),
+                            child: _isSaving
+                                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : const Text('Update Password'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ),
     );
   }
 }

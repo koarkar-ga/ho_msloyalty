@@ -34,9 +34,9 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading gift cards: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading gift cards: $e')));
     }
   }
 
@@ -44,10 +44,8 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
     showDialog(
       context: context,
       barrierColor: Colors.black.withOpacity(0.8),
-      builder: (context) => _GiftCardEditDialog(
-        card: card,
-        onSaved: _loadGiftCards,
-      ),
+      builder: (context) =>
+          _GiftCardEditDialog(card: card, onSaved: _loadGiftCards),
     );
   }
 
@@ -56,7 +54,10 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
     return Scaffold(
       backgroundColor: HOColors.background,
       appBar: AppBar(
-        title: Text('Gift Card Management', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Gift Card Management',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -69,7 +70,9 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: HOColors.accent,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
@@ -88,7 +91,8 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
                   mainAxisSpacing: 24,
                 ),
                 itemCount: _giftCards.length,
-                itemBuilder: (context, index) => _buildGiftCard(_giftCards[index]),
+                itemBuilder: (context, index) =>
+                    _buildGiftCard(_giftCards[index]),
               ),
             ),
     );
@@ -120,10 +124,21 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
                   height: double.infinity,
                   color: HOColors.divider.withOpacity(0.1),
                   child: card['image_url'] != null
-                      ? Image.network(card['image_url'], fit: BoxFit.cover, 
-                          errorBuilder: (context, error, stackTrace) => 
-                          const Icon(Icons.card_giftcard, size: 40, color: HOColors.textSecondary))
-                      : const Icon(Icons.card_giftcard, size: 40, color: HOColors.textSecondary),
+                      ? Image.network(
+                          card['image_url'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.card_giftcard,
+                                size: 40,
+                                color: HOColors.textSecondary,
+                              ),
+                        )
+                      : const Icon(
+                          Icons.card_giftcard,
+                          size: 40,
+                          color: HOColors.textSecondary,
+                        ),
                 ),
                 // Info Section
                 Expanded(
@@ -157,14 +172,20 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
                             Icon(
                               Icons.circle,
                               size: 10,
-                              color: card['is_available'] == true ? Colors.green : Colors.red,
+                              color: card['is_available'] == true
+                                  ? Colors.green
+                                  : Colors.red,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              card['is_available'] == true ? 'Available' : 'Unavailable',
+                              card['is_available'] == true
+                                  ? 'Available'
+                                  : 'Unavailable',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: card['is_available'] == true ? Colors.green : Colors.red,
+                                color: card['is_available'] == true
+                                    ? Colors.green
+                                    : Colors.red,
                               ),
                             ),
                           ],
@@ -177,7 +198,9 @@ class _GiftCardManagementPageState extends State<GiftCardManagementPage> {
                             foregroundColor: HOColors.accent,
                             elevation: 0,
                             minimumSize: const Size(double.infinity, 36),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                           child: const Text('Edit Details'),
                         ),
@@ -219,10 +242,18 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.card?['title'] ?? '');
-    _descController = TextEditingController(text: widget.card?['description'] ?? '');
-    _pointsController = TextEditingController(text: widget.card?['points_required']?.toString() ?? '0');
-    _imageUrlController = TextEditingController(text: widget.card?['image_url'] ?? '');
-    _agreementController = TextEditingController(text: widget.card?['agreement'] ?? '');
+    _descController = TextEditingController(
+      text: widget.card?['description'] ?? '',
+    );
+    _pointsController = TextEditingController(
+      text: widget.card?['points_required']?.toString() ?? '0',
+    );
+    _imageUrlController = TextEditingController(
+      text: widget.card?['image_url'] ?? '',
+    );
+    _agreementController = TextEditingController(
+      text: widget.card?['agreement'] ?? '',
+    );
     _isAvailable = widget.card?['is_available'] ?? true;
   }
 
@@ -242,9 +273,9 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('File Selection Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('File Selection Error: $e')));
     }
   }
 
@@ -279,9 +310,9 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
       );
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving: $e')));
     } finally {
       setState(() => _isSaving = false);
     }
@@ -357,7 +388,7 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                     ],
                   ),
                   const SizedBox(height: 40),
-                  
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -372,27 +403,47 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.05),
+                                ),
                                 image: _previewBytes != null
-                                  ? DecorationImage(
-                                      image: MemoryImage(_previewBytes!),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : (_imageUrlController.text.isNotEmpty
-                                      ? DecorationImage(
-                                          image: NetworkImage(_imageUrlController.text),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : null),
+                                    ? DecorationImage(
+                                        image: MemoryImage(_previewBytes!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : (_imageUrlController.text.isNotEmpty
+                                          ? DecorationImage(
+                                              image: NetworkImage(
+                                                _imageUrlController.text,
+                                              ),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null),
                               ),
-                              child: _previewBytes == null && _imageUrlController.text.isEmpty
+                              child:
+                                  _previewBytes == null &&
+                                      _imageUrlController.text.isEmpty
                                   ? Center(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.add_a_photo_outlined, size: 48, color: Colors.white.withOpacity(0.3)),
+                                          Icon(
+                                            Icons.add_a_photo_outlined,
+                                            size: 48,
+                                            color: Colors.white.withOpacity(
+                                              0.3,
+                                            ),
+                                          ),
                                           const SizedBox(height: 12),
-                                          Text('Upload Image', style: GoogleFonts.outfit(color: Colors.white.withOpacity(0.3))),
+                                          Text(
+                                            'Upload Image',
+                                            style: GoogleFonts.outfit(
+                                              color: Colors.white.withOpacity(
+                                                0.3,
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     )
@@ -402,12 +453,15 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                           const SizedBox(height: 12),
                           Text(
                             'Recommended: 1:1 Aspect Ratio',
-                            style: GoogleFonts.outfit(fontSize: 11, color: Colors.white38),
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              color: Colors.white38,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(width: 40),
-                      
+
                       // --- Form Fields ---
                       Expanded(
                         child: Column(
@@ -428,11 +482,16 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                             ),
                             const SizedBox(height: 32),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.03),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.05),
+                                ),
                               ),
                               child: SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
@@ -446,8 +505,9 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                                   ),
                                 ),
                                 value: _isAvailable,
-                                activeColor: HOColors.accent,
-                                onChanged: (v) => setState(() => _isAvailable = v),
+                                activeThumbColor: HOColors.accent,
+                                onChanged: (v) =>
+                                    setState(() => _isAvailable = v),
                               ),
                             ),
                           ],
@@ -456,7 +516,7 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
+
                   _buildModernField(
                     controller: _descController,
                     label: 'DESCRIPTION',
@@ -472,18 +532,21 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                     hint: 'e.g. Valid at all stations...',
                     maxLines: 2,
                   ),
-                  
+
                   const SizedBox(height: 48),
-                  
+
                   // --- Buttons ---
                   Row(
                     children: [
-                      if (widget.card != null) 
+                      if (widget.card != null)
                         Padding(
                           padding: const EdgeInsets.only(right: 16),
                           child: IconButton(
                             onPressed: _delete,
-                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.redAccent,
+                            ),
                             tooltip: 'Delete Card',
                           ),
                         ),
@@ -509,14 +572,29 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
                               backgroundColor: Colors.transparent,
                               foregroundColor: Colors.white,
                               shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
                             ),
-                            child: _isSaving 
-                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                              : Text(
-                                  widget.card == null ? 'CREATE GIFT CARD' : 'SAVE CHANGES',
-                                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1),
-                                ),
+                            child: _isSaving
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    widget.card == null
+                                        ? 'CREATE GIFT CARD'
+                                        : 'SAVE CHANGES',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
@@ -584,10 +662,21 @@ class _GiftCardEditDialogState extends State<_GiftCardEditDialog> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: HOColors.surface,
-        title: Text('Delete Gift Card?', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-        content: const Text('This action cannot be undone and will remove this card from the rewards list.'),
+        title: Text(
+          'Delete Gift Card?',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'This action cannot be undone and will remove this card from the rewards list.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL', style: TextStyle(color: Colors.white60))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: Colors.white60),
+            ),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),

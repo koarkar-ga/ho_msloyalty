@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ho_msloyalty/theme.dart';
-import 'package:ho_msloyalty/pages/overview_page.dart'; // import just to get HODashboardBase if needed, actually we need main.dart's HODashboardBase
+// import just to get HODashboardBase if needed, actually we need main.dart's HODashboardBase
 import 'package:ho_msloyalty/services/data_service.dart';
 import 'package:ho_msloyalty/main.dart';
-import 'dart:ui';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,16 +20,16 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
-    
+
     final result = await HODataService().loginHOUser(username, password);
-    
+
     setState(() => _isLoading = false);
-    
+
     if (result != null && result['status'] == 'success') {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HODashboardBase()),
@@ -45,7 +44,10 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: HOColors.surface,
-        title: const Text('Login Failed', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Login Failed',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
@@ -83,7 +85,11 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.dashboard_customize, size: 60, color: HOColors.accent),
+                  const Icon(
+                    Icons.dashboard_customize,
+                    size: 60,
+                    color: HOColors.accent,
+                  ),
                   const SizedBox(height: 20),
                   const Text(
                     'MOON SUN ENERGY',
@@ -103,14 +109,17 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 48),
-                  
+
                   TextFormField(
                     controller: _usernameController,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Username',
                       labelStyle: const TextStyle(color: Colors.white54),
-                      prefixIcon: const Icon(Icons.person, color: Colors.white54),
+                      prefixIcon: const Icon(
+                        Icons.person,
+                        color: Colors.white54,
+                      ),
                       filled: true,
                       fillColor: Colors.black26,
                       border: OutlineInputBorder(
@@ -118,10 +127,11 @@ class _LoginPageState extends State<LoginPage> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (val) => val == null || val.isEmpty ? 'Enter username' : null,
+                    validator: (val) =>
+                        val == null || val.isEmpty ? 'Enter username' : null,
                   ),
                   const SizedBox(height: 20),
-                  
+
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -132,10 +142,14 @@ class _LoginPageState extends State<LoginPage> {
                       prefixIcon: const Icon(Icons.lock, color: Colors.white54),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                           color: Colors.white54,
                         ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
                       filled: true,
                       fillColor: Colors.black26,
@@ -144,10 +158,11 @@ class _LoginPageState extends State<LoginPage> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (val) => val == null || val.isEmpty ? 'Enter password' : null,
+                    validator: (val) =>
+                        val == null || val.isEmpty ? 'Enter password' : null,
                   ),
                   const SizedBox(height: 40),
-                  
+
                   SizedBox(
                     width: double.infinity,
                     height: 50,

@@ -44,7 +44,9 @@ class _UserListPageState extends State<UserListPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -55,18 +57,22 @@ class _UserListPageState extends State<UserListPage> {
       final name = user['full_name']?.toString().toLowerCase() ?? "";
       final phone = user['phone_number']?.toString().toLowerCase() ?? "";
       final memberId = user['member_id']?.toString().toLowerCase() ?? "";
-      final matchesSearch = name.contains(_searchQuery.toLowerCase()) || 
-                            phone.contains(_searchQuery.toLowerCase()) ||
-                            memberId.contains(_searchQuery.toLowerCase());
+      final matchesSearch =
+          name.contains(_searchQuery.toLowerCase()) ||
+          phone.contains(_searchQuery.toLowerCase()) ||
+          memberId.contains(_searchQuery.toLowerCase());
 
       // Tier Filter
       final tier = user['member_types']?['name']?.toString() ?? "GOLD";
-      final matchesTier = _selectedTier == "All Tiers" || tier.toUpperCase() == _selectedTier.toUpperCase();
+      final matchesTier =
+          _selectedTier == "All Tiers" ||
+          tier.toUpperCase() == _selectedTier.toUpperCase();
 
       // Status Filter
       final isActive = user['is_active'] ?? true;
       final statusStr = isActive ? "Active" : "Inactive";
-      final matchesStatus = _selectedStatus == "All Status" || statusStr == _selectedStatus;
+      final matchesStatus =
+          _selectedStatus == "All Status" || statusStr == _selectedStatus;
 
       return matchesSearch && matchesTier && matchesStatus;
     }).toList();
@@ -76,8 +82,8 @@ class _UserListPageState extends State<UserListPage> {
       filtered.sort((a, b) {
         final pointsA = a['total_points'] ?? 0;
         final pointsB = b['total_points'] ?? 0;
-        return _pointsSortOrder == "Asc" 
-            ? pointsA.compareTo(pointsB) 
+        return _pointsSortOrder == "Asc"
+            ? pointsA.compareTo(pointsB)
             : pointsB.compareTo(pointsA);
       });
     }
@@ -102,7 +108,9 @@ class _UserListPageState extends State<UserListPage> {
               child: LinearProgressIndicator(
                 value: _sendProgress,
                 backgroundColor: Colors.white12,
-                valueColor: const AlwaysStoppedAnimation<Color>(HOColors.accent),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  HOColors.accent,
+                ),
                 minHeight: 4,
               ),
             ),
@@ -160,7 +168,10 @@ class _UserListPageState extends State<UserListPage> {
                   decoration: InputDecoration(
                     hintText: 'Search by Name, Phone or Member ID...',
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-                    prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.5)),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.white.withOpacity(0.5),
+                    ),
                     filled: true,
                     fillColor: Colors.black26,
                     border: OutlineInputBorder(
@@ -171,17 +182,27 @@ class _UserListPageState extends State<UserListPage> {
                 ),
               ),
               const SizedBox(width: 20),
-              _buildModernDropdown(_selectedTier, ['All Tiers', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'], (v) {
-                setState(() => _selectedTier = v!);
-              }),
+              _buildModernDropdown(
+                _selectedTier,
+                ['All Tiers', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'],
+                (v) {
+                  setState(() => _selectedTier = v!);
+                },
+              ),
               const SizedBox(width: 12),
-              _buildModernDropdown(_selectedStatus, ['All Status', 'Active', 'Inactive'], (v) {
-                setState(() => _selectedStatus = v!);
-              }),
+              _buildModernDropdown(
+                _selectedStatus,
+                ['All Status', 'Active', 'Inactive'],
+                (v) {
+                  setState(() => _selectedStatus = v!);
+                },
+              ),
               if (_selectedUserIds.isNotEmpty) ...[
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
-                  onPressed: _isSendingMulti ? null : () => _showMultiSMSDialog(),
+                  onPressed: _isSendingMulti
+                      ? null
+                      : () => _showMultiSMSDialog(),
                   icon: const Icon(Icons.send, size: 16),
                   label: Text('SEND TO ${_selectedUserIds.length} SELECTED'),
                   style: ElevatedButton.styleFrom(
@@ -197,7 +218,11 @@ class _UserListPageState extends State<UserListPage> {
     );
   }
 
-  Widget _buildModernDropdown(String value, List<String> items, ValueChanged<String?> onChanged) {
+  Widget _buildModernDropdown(
+    String value,
+    List<String> items,
+    ValueChanged<String?> onChanged,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -210,7 +235,9 @@ class _UserListPageState extends State<UserListPage> {
           dropdownColor: HOColors.surface,
           style: const TextStyle(color: Colors.white, fontSize: 13),
           icon: const Icon(Icons.keyboard_arrow_down, color: HOColors.accent),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          items: items
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .toList(),
           onChanged: onChanged,
         ),
       ),
@@ -220,18 +247,23 @@ class _UserListPageState extends State<UserListPage> {
   void _showSMSDialog(Map<String, dynamic> user) {
     final TextEditingController controller = TextEditingController();
     final String phone = user['phone_number'] ?? '';
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: HOColors.surface,
-        title: Text('SEND SMS TO ${user['full_name']?.toString().toUpperCase()}', 
-          style: const TextStyle(color: Colors.white, fontSize: 16)),
+        title: Text(
+          'SEND SMS TO ${user['full_name']?.toString().toUpperCase()}',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Recipient: $phone', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            Text(
+              'Recipient: $phone',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
@@ -242,7 +274,9 @@ class _UserListPageState extends State<UserListPage> {
                 hintStyle: TextStyle(color: Colors.white24),
                 filled: true,
                 fillColor: Colors.black26,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -256,41 +290,51 @@ class _UserListPageState extends State<UserListPage> {
             style: ElevatedButton.styleFrom(backgroundColor: HOColors.accent),
             onPressed: () async {
               if (controller.text.isEmpty) return;
-              
+
               if (phone.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('User has no phone number'))
+                  const SnackBar(content: Text('User has no phone number')),
                 );
                 return;
               }
 
               Navigator.pop(context);
-              
+
               final res = await _smsService.sendSMS(
-                to: phone.replaceAll('+', '').replaceAll(' ', ''), 
-                message: controller.text
+                to: phone.replaceAll('+', '').replaceAll(' ', ''),
+                message: controller.text,
               );
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(res['status'] == 'success' 
-                      ? 'SMS sent successfully!' 
-                      : 'Failed to send SMS: ${res['message']}'),
-                    backgroundColor: res['status'] == 'success' ? Colors.green : Colors.red,
-                  )
+                    content: Text(
+                      res['status'] == 'success'
+                          ? 'SMS sent successfully!'
+                          : 'Failed to send SMS: ${res['message']}',
+                    ),
+                    backgroundColor: res['status'] == 'success'
+                        ? Colors.green
+                        : Colors.red,
+                  ),
                 );
-                
+
                 if (res['status'] == 'success') {
                   _dataService.logActivity(
                     actionType: 'SEND_SMS',
                     description: 'Sent SMS to ${user['full_name']} ($phone)',
-                    metadata: {'message': controller.text, 'phone': phone}
+                    metadata: {'message': controller.text, 'phone': phone},
                   );
                 }
               }
             },
-            child: const Text('SEND MESSAGE', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'SEND MESSAGE',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -299,19 +343,23 @@ class _UserListPageState extends State<UserListPage> {
 
   void _showMultiSMSDialog() {
     final TextEditingController controller = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: HOColors.surface,
-        title: Text('SEND SMS TO ${_selectedUserIds.length} SELECTED USERS', 
-          style: const TextStyle(color: Colors.white, fontSize: 16)),
+        title: Text(
+          'SEND SMS TO ${_selectedUserIds.length} SELECTED USERS',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('This will broadcast the message to all selected members.', 
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            Text(
+              'This will broadcast the message to all selected members.',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
@@ -322,7 +370,9 @@ class _UserListPageState extends State<UserListPage> {
                 hintStyle: TextStyle(color: Colors.white24),
                 filled: true,
                 fillColor: Colors.black26,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -339,7 +389,13 @@ class _UserListPageState extends State<UserListPage> {
               Navigator.pop(context);
               _startMultiBroadcast(controller.text);
             },
-            child: const Text('START SENDING', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'START SENDING',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -352,17 +408,19 @@ class _UserListPageState extends State<UserListPage> {
       _sendProgress = 0.0;
     });
 
-    final selectedUsers = _users.where((u) => _selectedUserIds.contains(u['id'].toString())).toList();
+    final selectedUsers = _users
+        .where((u) => _selectedUserIds.contains(u['id'].toString()))
+        .toList();
     int sentCount = 0;
 
     for (int i = 0; i < selectedUsers.length; i++) {
       final user = selectedUsers[i];
       final String phone = user['phone_number'] ?? '';
-      
+
       if (phone.isNotEmpty) {
         await _smsService.sendSMS(
-          to: phone.replaceAll('+', '').replaceAll(' ', ''), 
-          message: message
+          to: phone.replaceAll('+', '').replaceAll(' ', ''),
+          message: message,
         );
         sentCount++;
       }
@@ -370,19 +428,21 @@ class _UserListPageState extends State<UserListPage> {
       setState(() {
         _sendProgress = (i + 1) / selectedUsers.length;
       });
-      
+
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Multi-SMS finished. Sent to $sentCount users.'))
+        SnackBar(
+          content: Text('Multi-SMS finished. Sent to $sentCount users.'),
+        ),
       );
-      
+
       _dataService.logActivity(
         actionType: 'MULTI_SMS',
         description: 'Sent SMS to $sentCount selected users.',
-        metadata: {'message': message, 'user_count': sentCount}
+        metadata: {'message': message, 'user_count': sentCount},
       );
     }
 
@@ -398,7 +458,8 @@ class _UserListPageState extends State<UserListPage> {
       final dob = DateTime.parse(dobString);
       final today = DateTime.now();
       int age = today.year - dob.year;
-      if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
+      if (today.month < dob.month ||
+          (today.month == dob.month && today.day < dob.day)) {
         age--;
       }
       return age;
@@ -408,17 +469,20 @@ class _UserListPageState extends State<UserListPage> {
   }
 
   void _showUserInfoDialog(Map<String, dynamic> user) {
-    final tier = user['member_types']?['name']?.toString().toUpperCase() ?? 'GOLD';
+    final tier =
+        user['member_types']?['name']?.toString().toUpperCase() ?? 'GOLD';
     final balance = user['total_points'] ?? 0;
-    final joinDate = user['created_at'] != null 
-        ? DateFormat('dd MMM yyyy').format(DateTime.parse(user['created_at'])) 
+    final joinDate = user['created_at'] != null
+        ? DateFormat('dd MMM yyyy').format(DateTime.parse(user['created_at']))
         : 'N/A';
-    
+
     final lastLogin = user['last_login_at'] != null
-        ? DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.parse(user['last_login_at']).toLocal())
+        ? DateFormat(
+            'dd MMM yyyy, hh:mm a',
+          ).format(DateTime.parse(user['last_login_at']).toLocal())
         : 'Never';
-    
-    final dob = user['dob'] != null 
+
+    final dob = user['dob'] != null
         ? DateFormat('dd MMM yyyy').format(DateTime.parse(user['dob']))
         : 'N/A';
     final age = _calculateAge(user['dob']);
@@ -428,7 +492,7 @@ class _UserListPageState extends State<UserListPage> {
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Container(
+        child: SizedBox(
           width: 700,
           height: 480,
           child: Stack(
@@ -441,7 +505,10 @@ class _UserListPageState extends State<UserListPage> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5,
+                      ),
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -455,7 +522,7 @@ class _UserListPageState extends State<UserListPage> {
                           color: Colors.black.withOpacity(0.5),
                           blurRadius: 30,
                           offset: const Offset(0, 15),
-                        )
+                        ),
                       ],
                     ),
                     child: Stack(
@@ -481,7 +548,8 @@ class _UserListPageState extends State<UserListPage> {
                             children: [
                               // Top Row: Brand & Card Label
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
@@ -489,25 +557,37 @@ class _UserListPageState extends State<UserListPage> {
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: HOColors.accent,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
-                                        child: const Icon(Icons.flash_on, color: Colors.black, size: 20),
+                                        child: const Icon(
+                                          Icons.flash_on,
+                                          color: Colors.black,
+                                          size: 20,
+                                        ),
                                       ),
                                       const SizedBox(width: 12),
-                                      const Text('MOON SUN', style: TextStyle(
-                                        color: Colors.white, 
-                                        fontWeight: FontWeight.w900, 
-                                        letterSpacing: 2.0,
-                                        fontSize: 20
-                                      )),
+                                      const Text(
+                                        'MOON SUN',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 2.0,
+                                          fontSize: 20,
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                  Text('DIGITAL PREMIUM MEMBER', style: TextStyle(
-                                    color: Colors.white.withOpacity(0.3),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 2.0
-                                  )),
+                                  Text(
+                                    'DIGITAL PREMIUM MEMBER',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.3),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2.0,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const Spacer(),
@@ -520,48 +600,86 @@ class _UserListPageState extends State<UserListPage> {
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: HOColors.accent.withOpacity(0.5), width: 2),
+                                      border: Border.all(
+                                        color: HOColors.accent.withOpacity(0.5),
+                                        width: 2,
+                                      ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: HOColors.accent.withOpacity(0.2),
+                                          color: HOColors.accent.withOpacity(
+                                            0.2,
+                                          ),
                                           blurRadius: 15,
                                           spreadRadius: 2,
-                                        )
+                                        ),
                                       ],
                                     ),
-                                    child: _buildAvatar(user['avatar_url'], user['full_name']?[0] ?? 'G', size: 100),
+                                    child: _buildAvatar(
+                                      user['avatar_url'],
+                                      user['full_name']?[0] ?? 'G',
+                                      size: 100,
+                                    ),
                                   ),
                                   const SizedBox(width: 32),
                                   // Name & Primary Contact
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(user['full_name'] ?? 'Guest User', 
+                                        Text(
+                                          user['full_name'] ?? 'Guest User',
                                           style: const TextStyle(
-                                            color: Colors.white, 
-                                            fontSize: 32, 
+                                            color: Colors.white,
+                                            fontSize: 32,
                                             fontWeight: FontWeight.w900,
                                             height: 1.1,
-                                            letterSpacing: 0.5
+                                            letterSpacing: 0.5,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 8),
-                                        Text(user['member_id'] ?? 'MEMBER-ID-NONE', 
-                                          style: const TextStyle(color: HOColors.accent, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                                        Text(
+                                          user['member_id'] ?? 'MEMBER-ID-NONE',
+                                          style: const TextStyle(
+                                            color: HOColors.accent,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.0,
+                                          ),
+                                        ),
                                         const SizedBox(height: 12),
                                         // Phone & Email Row
                                         Row(
                                           children: [
-                                            Icon(Icons.phone, color: Colors.white38, size: 14),
+                                            Icon(
+                                              Icons.phone,
+                                              color: Colors.white38,
+                                              size: 14,
+                                            ),
                                             const SizedBox(width: 6),
-                                            Text(user['phone_number'] ?? '-', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                                            Text(
+                                              user['phone_number'] ?? '-',
+                                              style: const TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 13,
+                                              ),
+                                            ),
                                             const SizedBox(width: 20),
-                                            Icon(Icons.email, color: Colors.white38, size: 14),
+                                            Icon(
+                                              Icons.email,
+                                              color: Colors.white38,
+                                              size: 14,
+                                            ),
                                             const SizedBox(width: 6),
-                                            Text(user['email'] ?? '-', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                                            Text(
+                                              user['email'] ?? '-',
+                                              style: const TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 13,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ],
@@ -576,25 +694,67 @@ class _UserListPageState extends State<UserListPage> {
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.3),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.05),
+                                  ),
                                 ),
                                 child: Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Expanded(child: _buildCardStat('TIER LEVEL', tier, Icons.verified_user)),
-                                        Expanded(child: _buildCardStat('CURRENT POINTS', NumberFormat('#,###').format(balance), Icons.stars)),
-                                        Expanded(child: _buildCardStat('AGE / DOB', '$age Years ($dob)', Icons.celebration)),
+                                        Expanded(
+                                          child: _buildCardStat(
+                                            'TIER LEVEL',
+                                            tier,
+                                            Icons.verified_user,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _buildCardStat(
+                                            'CURRENT POINTS',
+                                            NumberFormat(
+                                              '#,###',
+                                            ).format(balance),
+                                            Icons.stars,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _buildCardStat(
+                                            'AGE / DOB',
+                                            '$age Years ($dob)',
+                                            Icons.celebration,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 24),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Expanded(child: _buildCardStat('LAST DEVICE MODEL', user['device_model'] ?? 'N/A', Icons.phone_android)),
-                                        Expanded(child: _buildCardStat('LAST LOGGED IN', lastLogin, Icons.access_time)),
-                                        Expanded(child: _buildCardStat('JOINED DATE', joinDate, Icons.calendar_today)),
+                                        Expanded(
+                                          child: _buildCardStat(
+                                            'LAST DEVICE MODEL',
+                                            user['device_model'] ?? 'N/A',
+                                            Icons.phone_android,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _buildCardStat(
+                                            'LAST LOGGED IN',
+                                            lastLogin,
+                                            Icons.access_time,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _buildCardStat(
+                                            'JOINED DATE',
+                                            joinDate,
+                                            Icons.calendar_today,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -633,11 +793,26 @@ class _UserListPageState extends State<UserListPage> {
           children: [
             Icon(icon, color: HOColors.accent.withOpacity(0.7), size: 12),
             const SizedBox(width: 4),
-            Text(label, style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.4),
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
       ],
     );
   }
@@ -657,9 +832,16 @@ class _UserListPageState extends State<UserListPage> {
         radius: size / 2,
         backgroundColor: HOColors.surface,
         backgroundImage: url != null ? NetworkImage(url) : null,
-        child: url == null 
-          ? Text(initial, style: TextStyle(color: HOColors.accent, fontWeight: FontWeight.bold, fontSize: size * 0.4)) 
-          : null,
+        child: url == null
+            ? Text(
+                initial,
+                style: TextStyle(
+                  color: HOColors.accent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: size * 0.4,
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -691,8 +873,12 @@ class _UserListPageState extends State<UserListPage> {
                 child: Scrollbar(
                   child: ListView.separated(
                     itemCount: _filteredUsers.length,
-                    separatorBuilder: (context, index) => Divider(height: 1, color: Colors.white.withOpacity(0.05)),
-                    itemBuilder: (context, index) => _buildUserRow(_filteredUsers[index]),
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      color: Colors.white.withOpacity(0.05),
+                    ),
+                    itemBuilder: (context, index) =>
+                        _buildUserRow(_filteredUsers[index]),
                   ),
                 ),
               ),
@@ -708,20 +894,26 @@ class _UserListPageState extends State<UserListPage> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
-        border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
+        ),
       ),
       child: Row(
         children: [
           SizedBox(
             width: 48,
             child: Checkbox(
-              value: _filteredUsers.isNotEmpty && _selectedUserIds.length >= _filteredUsers.length,
+              value:
+                  _filteredUsers.isNotEmpty &&
+                  _selectedUserIds.length >= _filteredUsers.length,
               activeColor: HOColors.accent,
               checkColor: Colors.black,
               onChanged: (val) {
                 setState(() {
                   if (val == true) {
-                    _selectedUserIds.addAll(_filteredUsers.map((u) => u['id'].toString()));
+                    _selectedUserIds.addAll(
+                      _filteredUsers.map((u) => u['id'].toString()),
+                    );
                   } else {
                     _selectedUserIds.clear();
                   }
@@ -730,16 +922,22 @@ class _UserListPageState extends State<UserListPage> {
             ),
           ),
           const Expanded(flex: 3, child: Text('MEMBER', style: _headerStyle)),
-          const Expanded(flex: 2, child: Text('MEMBER ID / UID', style: _headerStyle)),
+          const Expanded(
+            flex: 2,
+            child: Text('MEMBER ID / UID', style: _headerStyle),
+          ),
           const Expanded(flex: 1, child: Text('TIER', style: _headerStyle)),
           Expanded(
-            flex: 1, 
+            flex: 1,
             child: InkWell(
               onTap: () {
                 setState(() {
-                  if (_pointsSortOrder == "None") _pointsSortOrder = "Desc";
-                  else if (_pointsSortOrder == "Desc") _pointsSortOrder = "Asc";
-                  else _pointsSortOrder = "None";
+                  if (_pointsSortOrder == "None") {
+                    _pointsSortOrder = "Desc";
+                  } else if (_pointsSortOrder == "Desc")
+                    _pointsSortOrder = "Asc";
+                  else
+                    _pointsSortOrder = "None";
                 });
               },
               child: Row(
@@ -747,19 +945,29 @@ class _UserListPageState extends State<UserListPage> {
                   const Text('POINTS', style: _headerStyle),
                   const SizedBox(width: 4),
                   Icon(
-                    _pointsSortOrder == "Asc" ? Icons.arrow_upward : 
-                    _pointsSortOrder == "Desc" ? Icons.arrow_downward : 
-                    Icons.sort, 
-                    size: 14, 
-                    color: _pointsSortOrder == "None" ? Colors.white24 : HOColors.accent
+                    _pointsSortOrder == "Asc"
+                        ? Icons.arrow_upward
+                        : _pointsSortOrder == "Desc"
+                        ? Icons.arrow_downward
+                        : Icons.sort,
+                    size: 14,
+                    color: _pointsSortOrder == "None"
+                        ? Colors.white24
+                        : HOColors.accent,
                   ),
                 ],
               ),
             ),
           ),
-          const Expanded(flex: 2, child: Text('LAST DEVICE', style: _headerStyle)),
+          const Expanded(
+            flex: 2,
+            child: Text('LAST DEVICE', style: _headerStyle),
+          ),
           const Expanded(flex: 1, child: Text('STATUS', style: _headerStyle)),
-          const SizedBox(width: 100, child: Text('ACTION', style: _headerStyle)),
+          const SizedBox(
+            width: 100,
+            child: Text('ACTION', style: _headerStyle),
+          ),
         ],
       ),
     );
@@ -768,7 +976,8 @@ class _UserListPageState extends State<UserListPage> {
   Widget _buildUserRow(Map<String, dynamic> user) {
     final balance = user['total_points'] ?? 0;
     final isActive = user['is_active'] ?? true;
-    final tier = user['member_types']?['name']?.toString().toUpperCase() ?? 'GOLD';
+    final tier =
+        user['member_types']?['name']?.toString().toUpperCase() ?? 'GOLD';
 
     return InkWell(
       onTap: () => _showUserInfoDialog(user),
@@ -799,19 +1008,28 @@ class _UserListPageState extends State<UserListPage> {
               flex: 3,
               child: Row(
                 children: [
-                  _buildAvatar(user['avatar_url'], user['full_name']?[0] ?? 'G'),
+                  _buildAvatar(
+                    user['avatar_url'],
+                    user['full_name']?[0] ?? 'G',
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(user['full_name'] ?? 'Guest', 
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        Text(
+                          user['full_name'] ?? 'Guest',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(user['phone_number'] ?? '-', 
-                          style: TextStyle(color: Colors.white38, fontSize: 11)),
+                        Text(
+                          user['phone_number'] ?? '-',
+                          style: TextStyle(color: Colors.white38, fontSize: 11),
+                        ),
                       ],
                     ),
                   ),
@@ -824,24 +1042,32 @@ class _UserListPageState extends State<UserListPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(user['member_id'] ?? 'N/A', 
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: HOColors.accent)),
-                  Text(user['id']?.toString() ?? '-', 
-                    style: TextStyle(color: Colors.white38, fontSize: 10)),
+                  Text(
+                    user['member_id'] ?? 'N/A',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: HOColors.accent,
+                    ),
+                  ),
+                  Text(
+                    user['id']?.toString() ?? '-',
+                    style: TextStyle(color: Colors.white38, fontSize: 10),
+                  ),
                 ],
               ),
             ),
             // Tier Column
-            Expanded(
-              flex: 1,
-              child: _buildTierBadge(tier),
-            ),
+            Expanded(flex: 1, child: _buildTierBadge(tier)),
             // Points Column
             Expanded(
               flex: 1,
               child: Text(
                 NumberFormat('#,###').format(balance),
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
             // Last Device Column
@@ -850,13 +1076,16 @@ class _UserListPageState extends State<UserListPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(user['device_model'] ?? 'Unknown Device', 
+                  Text(
+                    user['device_model'] ?? 'Unknown Device',
                     style: const TextStyle(fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(user['device_type']?.toString().toUpperCase() ?? '-', 
-                    style: TextStyle(color: Colors.white38, fontSize: 10)),
+                  Text(
+                    user['device_type']?.toString().toUpperCase() ?? '-',
+                    style: TextStyle(color: Colors.white38, fontSize: 10),
+                  ),
                 ],
               ),
             ),
@@ -865,9 +1094,12 @@ class _UserListPageState extends State<UserListPage> {
               flex: 1,
               child: Switch(
                 value: isActive,
-                activeColor: Colors.greenAccent,
+                activeThumbColor: Colors.greenAccent,
                 onChanged: (val) async {
-                  await _dataService.updateUserStatus(user['id'].toString(), val);
+                  await _dataService.updateUserStatus(
+                    user['id'].toString(),
+                    val,
+                  );
                   _loadUsers();
                 },
               ),
@@ -879,13 +1111,24 @@ class _UserListPageState extends State<UserListPage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.message_outlined, size: 18, color: HOColors.accent),
+                    icon: const Icon(
+                      Icons.message_outlined,
+                      size: 18,
+                      color: HOColors.accent,
+                    ),
                     onPressed: () => _showSMSDialog(user),
                     tooltip: 'Send SMS',
                   ),
                   TextButton(
                     onPressed: () => _showUserInfoDialog(user),
-                    child: const Text('VIEW', style: TextStyle(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'VIEW',
+                      style: TextStyle(
+                        color: Colors.white24,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -895,7 +1138,6 @@ class _UserListPageState extends State<UserListPage> {
       ),
     );
   }
-
 
   Widget _buildTierBadge(String tier) {
     Color color = Colors.amber;
@@ -918,7 +1160,15 @@ class _UserListPageState extends State<UserListPage> {
         children: [
           Icon(Icons.stars, color: color, size: 12),
           const SizedBox(width: 6),
-          Text(tier, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+          Text(
+            tier,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+            ),
+          ),
         ],
       ),
     );

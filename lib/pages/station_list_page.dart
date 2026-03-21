@@ -31,19 +31,20 @@ class _StationListPageState extends State<StationListPage> {
     try {
       final stations = await _dataService.getStationsWithMetrics();
       final fetchedRegions = await _dataService.getRegions();
-      
+
       setState(() {
         _stations = stations;
-        
+
         // If DB has no regions yet, fallback to deducing from existing stations
         if (fetchedRegions.isNotEmpty) {
           _regions = ["All Regions", ...fetchedRegions];
         } else {
-          final uniqueRegions = stations
-              .map((s) => s['region']?.toString() ?? 'Other')
-              .toSet()
-              .toList()
-            ..sort();
+          final uniqueRegions =
+              stations
+                  .map((s) => s['region']?.toString() ?? 'Other')
+                  .toSet()
+                  .toList()
+                ..sort();
           _regions = ["All Regions", ...uniqueRegions];
         }
 
@@ -62,11 +63,14 @@ class _StationListPageState extends State<StationListPage> {
     setState(() {
       _filteredStations = _stations.where((station) {
         final String name = (station['name'] ?? '').toString().toLowerCase();
-        final String id = (station['station_id'] ?? '').toString().toLowerCase();
+        final String id = (station['station_id'] ?? '')
+            .toString()
+            .toLowerCase();
         final bool matchesSearch = name.contains(query) || id.contains(query);
 
         final String region = (station['region'] ?? '').toString();
-        final bool matchesRegion = _selectedRegion == "All Regions" || region == _selectedRegion;
+        final bool matchesRegion =
+            _selectedRegion == "All Regions" || region == _selectedRegion;
 
         return matchesSearch && matchesRegion;
       }).toList();
@@ -121,14 +125,19 @@ class _StationListPageState extends State<StationListPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HOColors.accent.withOpacity(0.9),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 32),
-          
+
           // ── Search and Filter Bar ──────────────────────────────────────────────
           Row(
             children: [
@@ -145,10 +154,18 @@ class _StationListPageState extends State<StationListPage> {
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Search by station name or ID...',
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-                      prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.5)),
+                      hintStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.3),
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 15,
+                      ),
                     ),
                   ),
                 ),
@@ -169,7 +186,13 @@ class _StationListPageState extends State<StationListPage> {
                     items: _regions.map((region) {
                       return DropdownMenuItem(
                         value: region,
-                        child: Text(region, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                        child: Text(
+                          region,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -183,30 +206,41 @@ class _StationListPageState extends State<StationListPage> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           Expanded(
-            child: _isLoading 
-              ? const Center(child: CircularProgressIndicator())
-              : _filteredStations.isEmpty
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredStations.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off, size: 64, color: Colors.white.withOpacity(0.1)),
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.white.withOpacity(0.1),
+                        ),
                         const SizedBox(height: 16),
-                        Text("No stations found", style: TextStyle(color: Colors.white.withOpacity(0.3))),
+                        Text(
+                          "No stations found",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.3),
+                          ),
+                        ),
                       ],
                     ),
                   )
                 : GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 450,
-                      mainAxisExtent: 260, // Increased to accommodate Phone/Address
-                      crossAxisSpacing: 24,
-                      mainAxisSpacing: 24,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 450,
+                          mainAxisExtent:
+                              260, // Increased to accommodate Phone/Address
+                          crossAxisSpacing: 24,
+                          mainAxisSpacing: 24,
+                        ),
                     itemCount: _filteredStations.length,
                     itemBuilder: (context, index) {
                       final station = _filteredStations[index];
@@ -239,13 +273,29 @@ class _StationListPageState extends State<StationListPage> {
         children: [
           SizedBox(
             width: 130,
-            child: station['image_url'] != null && station['image_url'].toString().isNotEmpty
-              ? Image.network(
-                  station['image_url'],
-                  fit: BoxFit.cover,
-                  errorBuilder: (c, e, s) => Container(color: Colors.white10, child: const Icon(Icons.ev_station, color: HOColors.accent, size: 40)),
-                )
-              : Container(color: Colors.white10, child: const Icon(Icons.ev_station, color: HOColors.accent, size: 40)),
+            child:
+                station['image_url'] != null &&
+                    station['image_url'].toString().isNotEmpty
+                ? Image.network(
+                    station['image_url'],
+                    fit: BoxFit.cover,
+                    errorBuilder: (c, e, s) => Container(
+                      color: Colors.white10,
+                      child: const Icon(
+                        Icons.ev_station,
+                        color: HOColors.accent,
+                        size: 40,
+                      ),
+                    ),
+                  )
+                : Container(
+                    color: Colors.white10,
+                    child: const Icon(
+                      Icons.ev_station,
+                      color: HOColors.accent,
+                      size: 40,
+                    ),
+                  ),
           ),
           Expanded(
             child: Padding(
@@ -258,7 +308,11 @@ class _StationListPageState extends State<StationListPage> {
                       Expanded(
                         child: Text(
                           station['name'] ?? 'Unknown',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -269,14 +323,28 @@ class _StationListPageState extends State<StationListPage> {
                   const SizedBox(height: 4),
                   Text(
                     'ID: ${station['station_id'] ?? '-'}',
-                    style: TextStyle(color: HOColors.accent.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: HOColors.accent.withOpacity(0.7),
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  _buildIconTextRow(Icons.phone_outlined, station['phone'] ?? 'No phone provided'),
+                  _buildIconTextRow(
+                    Icons.phone_outlined,
+                    station['phone'] ?? 'No phone provided',
+                  ),
                   const SizedBox(height: 6),
-                  _buildIconTextRow(Icons.map_outlined, station['region'] ?? 'Unknown Region'),
+                  _buildIconTextRow(
+                    Icons.map_outlined,
+                    station['region'] ?? 'Unknown Region',
+                  ),
                   const SizedBox(height: 6),
-                  _buildIconTextRow(Icons.location_on_outlined, station['address'] ?? 'No address provided', maxLines: 2),
+                  _buildIconTextRow(
+                    Icons.location_on_outlined,
+                    station['address'] ?? 'No address provided',
+                    maxLines: 2,
+                  ),
                   const Spacer(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -285,13 +353,20 @@ class _StationListPageState extends State<StationListPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('ISSUED POINTS',
-                                style: TextStyle(
-                                    fontSize: 9,
-                                    color: Colors.white.withOpacity(0.4))),
-                            Text('${station['totalPoints'] ?? 0}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 14)),
+                            Text(
+                              'ISSUED POINTS',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: Colors.white.withOpacity(0.4),
+                              ),
+                            ),
+                            Text(
+                              '${station['totalPoints'] ?? 0}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -299,7 +374,10 @@ class _StationListPageState extends State<StationListPage> {
                       ElevatedButton.icon(
                         onPressed: () => _showEditSheet(station),
                         icon: const Icon(Icons.edit_outlined, size: 14),
-                        label: const Text('Edit', style: TextStyle(fontSize: 12)),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(fontSize: 12),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: HOColors.accent,
                           foregroundColor: HOColors.primary,
@@ -307,7 +385,8 @@ class _StationListPageState extends State<StationListPage> {
                           minimumSize: const Size(0, 36),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                     ],
@@ -330,7 +409,10 @@ class _StationListPageState extends State<StationListPage> {
         Expanded(
           child: Text(
             text,
-            style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12),
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.6),
+              fontSize: 12,
+            ),
             maxLines: maxLines,
             overflow: TextOverflow.ellipsis,
           ),
@@ -379,7 +461,7 @@ class _StationEditDialogState extends State<_StationEditDialog> {
   late TextEditingController _mapUrlController;
   late TextEditingController _latController;
   late TextEditingController _lngController;
-  
+
   String? _selectedRegion;
   List<String> _availableRegions = [];
   String? _imageUrl;
@@ -400,19 +482,22 @@ class _StationEditDialogState extends State<_StationEditDialog> {
     _lngController = TextEditingController(text: s?['lng']?.toString() ?? '');
     _selectedRegion = s?['region'];
     _imageUrl = s?['image_url'];
-    
+
     _fetchRegions();
   }
 
   Future<void> _fetchRegions() async {
     try {
       final regions = await HODataService().getRegions();
-      
+
       if (mounted) {
         setState(() {
-          _availableRegions = regions.isNotEmpty ? regions : ["Yangon", "Mandalay", "Naypyidaw", "Bago", "Sagaing"];
-          
-          if (_selectedRegion != null && !_availableRegions.contains(_selectedRegion!)) {
+          _availableRegions = regions.isNotEmpty
+              ? regions
+              : ["Yangon", "Mandalay", "Naypyidaw", "Bago", "Sagaing"];
+
+          if (_selectedRegion != null &&
+              !_availableRegions.contains(_selectedRegion!)) {
             _availableRegions.add(_selectedRegion!);
           }
           if (_selectedRegion == null && _availableRegions.isNotEmpty) {
@@ -429,12 +514,12 @@ class _StationEditDialogState extends State<_StationEditDialog> {
         type: FileType.image,
         withData: true,
       );
-      
+
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
         final bytes = file.bytes;
         final extension = file.extension;
-        
+
         if (bytes != null) {
           setState(() {
             _selectedImageBytes = bytes;
@@ -446,7 +531,10 @@ class _StationEditDialogState extends State<_StationEditDialog> {
       print("File Selection Error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -458,12 +546,12 @@ class _StationEditDialogState extends State<_StationEditDialog> {
     setState(() => _isSaving = true);
     try {
       String? finalImageUrl = _imageUrl;
-      
+
       if (_selectedImageBytes != null && _selectedImageExt != null) {
         finalImageUrl = await HODataService().uploadStationImage(
-          _idController.text, 
-          _selectedImageBytes!, 
-          _selectedImageExt!
+          _idController.text,
+          _selectedImageBytes!,
+          _selectedImageExt!,
         );
       }
 
@@ -500,7 +588,9 @@ class _StationEditDialogState extends State<_StationEditDialog> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -518,7 +608,11 @@ class _StationEditDialogState extends State<_StationEditDialog> {
           borderRadius: BorderRadius.circular(28),
           border: Border.all(color: Colors.white12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 40, offset: const Offset(0, 20)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 40,
+              offset: const Offset(0, 20),
+            ),
           ],
         ),
         child: SingleChildScrollView(
@@ -532,12 +626,22 @@ class _StationEditDialogState extends State<_StationEditDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Edit Station Details', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                    IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white54)),
+                    const Text(
+                      'Edit Station Details',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.white54),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
-                
+
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -550,22 +654,39 @@ class _StationEditDialogState extends State<_StationEditDialog> {
                             color: Colors.white.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: Colors.white10),
-                            image: _selectedImageBytes != null 
-                              ? DecorationImage(image: MemoryImage(_selectedImageBytes!), fit: BoxFit.cover)
-                              : (_imageUrl != null && _imageUrl!.isNotEmpty 
-                                  ? DecorationImage(image: NetworkImage(_imageUrl!), fit: BoxFit.cover)
-                                  : null),
+                            image: _selectedImageBytes != null
+                                ? DecorationImage(
+                                    image: MemoryImage(_selectedImageBytes!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : (_imageUrl != null && _imageUrl!.isNotEmpty
+                                      ? DecorationImage(
+                                          image: NetworkImage(_imageUrl!),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null),
                           ),
-                          child: (_selectedImageBytes == null && (_imageUrl == null || _imageUrl!.isEmpty))
-                            ? const Icon(Icons.ev_station, size: 60, color: Colors.white24)
-                            : null,
+                          child:
+                              (_selectedImageBytes == null &&
+                                  (_imageUrl == null || _imageUrl!.isEmpty))
+                              ? const Icon(
+                                  Icons.ev_station,
+                                  size: 60,
+                                  color: Colors.white24,
+                                )
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         TextButton.icon(
                           onPressed: _pickImage,
-                          icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+                          icon: const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 16,
+                          ),
                           label: const Text('Change Photo'),
-                          style: TextButton.styleFrom(foregroundColor: HOColors.accent),
+                          style: TextButton.styleFrom(
+                            foregroundColor: HOColors.accent,
+                          ),
                         ),
                       ],
                     ),
@@ -573,9 +694,17 @@ class _StationEditDialogState extends State<_StationEditDialog> {
                     Expanded(
                       child: Column(
                         children: [
-                          _buildField(_nameController, "Station Name", Icons.store_outlined),
+                          _buildField(
+                            _nameController,
+                            "Station Name",
+                            Icons.store_outlined,
+                          ),
                           const SizedBox(height: 16),
-                          _buildField(_idController, "Station ID / Code", Icons.badge_outlined),
+                          _buildField(
+                            _idController,
+                            "Station ID / Code",
+                            Icons.badge_outlined,
+                          ),
                           const SizedBox(height: 16),
                           _buildRegionDropdown(),
                         ],
@@ -583,37 +712,67 @@ class _StationEditDialogState extends State<_StationEditDialog> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                _buildField(_addressController, "Exact Address", Icons.location_on_outlined, maxLines: 2),
+                _buildField(
+                  _addressController,
+                  "Exact Address",
+                  Icons.location_on_outlined,
+                  maxLines: 2,
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildField(_phoneController, "Contact Phone", Icons.phone_outlined)),
+                    Expanded(
+                      child: _buildField(
+                        _phoneController,
+                        "Contact Phone",
+                        Icons.phone_outlined,
+                      ),
+                    ),
                     const SizedBox(width: 16),
-                    Expanded(child: _buildField(_mapUrlController, "Google Maps Link", Icons.link_outlined)),
+                    Expanded(
+                      child: _buildField(
+                        _mapUrlController,
+                        "Google Maps Link",
+                        Icons.link_outlined,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: _buildField(_latController, "Latitude (e.g. 16.8409)", Icons.gps_fixed, isNumber: true)
+                      child: _buildField(
+                        _latController,
+                        "Latitude (e.g. 16.8409)",
+                        Icons.gps_fixed,
+                        isNumber: true,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildField(_lngController, "Longitude (e.g. 96.1735)", Icons.gps_fixed, isNumber: true)
+                      child: _buildField(
+                        _lngController,
+                        "Longitude (e.g. 96.1735)",
+                        Icons.gps_fixed,
+                        isNumber: true,
+                      ),
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 48),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Discard Changes', style: TextStyle(color: Colors.white54)),
+                      child: const Text(
+                        'Discard Changes',
+                        style: TextStyle(color: Colors.white54),
+                      ),
                     ),
                     const SizedBox(width: 24),
                     ElevatedButton(
@@ -621,13 +780,28 @@ class _StationEditDialogState extends State<_StationEditDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: HOColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 20,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 10,
                       ),
-                      child: _isSaving 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Update Station Data', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Update Station Data',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                     ),
                   ],
                 ),
@@ -639,21 +813,42 @@ class _StationEditDialogState extends State<_StationEditDialog> {
     );
   }
 
-  Widget _buildField(TextEditingController controller, String label, IconData icon, {int maxLines = 1, bool isNumber = false}) {
+  Widget _buildField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    int maxLines = 1,
+    bool isNumber = false,
+  }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
-      keyboardType: isNumber ? const TextInputType.numberWithOptions(decimal: true) : null,
+      keyboardType: isNumber
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : null,
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white38),
-        prefixIcon: Icon(icon, color: HOColors.primary.withOpacity(0.5), size: 20),
+        prefixIcon: Icon(
+          icon,
+          color: HOColors.primary.withOpacity(0.5),
+          size: 20,
+        ),
         filled: true,
         fillColor: Colors.white.withOpacity(0.04),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: HOColors.primary, width: 1)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: HOColors.primary, width: 1),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       validator: (v) {
         if (v == null || v.isEmpty) return 'Required';
@@ -667,24 +862,34 @@ class _StationEditDialogState extends State<_StationEditDialog> {
 
   Widget _buildRegionDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedRegion,
+      initialValue: _selectedRegion,
       dropdownColor: HOColors.surface,
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(
         labelText: "Region",
         labelStyle: const TextStyle(color: Colors.white38),
-        prefixIcon: Icon(Icons.map_outlined, color: HOColors.primary.withOpacity(0.5), size: 20),
+        prefixIcon: Icon(
+          Icons.map_outlined,
+          color: HOColors.primary.withOpacity(0.5),
+          size: 20,
+        ),
         filled: true,
         fillColor: Colors.white.withOpacity(0.04),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: HOColors.primary, width: 1)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: HOColors.primary, width: 1),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       items: _availableRegions.map((region) {
-        return DropdownMenuItem(
-          value: region,
-          child: Text(region),
-        );
+        return DropdownMenuItem(value: region, child: Text(region));
       }).toList(),
       onChanged: (val) {
         setState(() {
