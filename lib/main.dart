@@ -19,6 +19,7 @@ import 'package:ho_msloyalty/pages/noti_manager_page.dart';
 import 'package:ho_msloyalty/pages/points_settings_page.dart';
 import 'package:ho_msloyalty/pages/ad_management_page.dart';
 import 'package:ho_msloyalty/pages/customer_feedback_page.dart';
+import 'package:ho_msloyalty/pages/gps_bowser_page.dart';
 import 'package:ho_msloyalty/config.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
@@ -513,6 +514,7 @@ class _HODashboardBaseState extends State<HODashboardBase> {
                             PointsSettingsPage(key: _pageKeys[14]),
                             AdManagementPage(key: _pageKeys[15]),
                             CustomerFeedbackPage(key: _pageKeys[16]),
+                            GpsBowserPage(key: _pageKeys[17]),
                           ],
                         ),
                         if (_isNavLoading)
@@ -600,7 +602,8 @@ class _HODashboardBaseState extends State<HODashboardBase> {
                   _sidebarItem(5, Icons.card_giftcard, 'Rewards'),
                   _sidebarItem(6, Icons.collections, 'Banners'),
                   _sidebarItem(7, Icons.admin_panel_settings, 'System Users'),
-                  _sidebarItem(8, Icons.price_change, 'Fuel Prices'),
+                  _sidebarItem(8, Icons.local_gas_station, 'Fuel Prices'),
+                  _sidebarItem(17, Icons.gps_fixed, 'GPS Bowser'),
                   _sidebarItem(10, Icons.system_update_rounded, 'App Updates'),
                   _sidebarItem(11, Icons.campaign_rounded, 'SMS Broadcast'),
                   _sidebarItem(

@@ -385,7 +385,7 @@ class HODataService {
           .from('system_settings')
           .update({'value': newPassword})
           .eq('key', 'ho_config_password');
-      
+
       await logActivity(
         actionType: 'UPDATE_HO_PASSWORD',
         description: 'Updated HO Configuration Password',
@@ -988,7 +988,14 @@ class HODataService {
 
     if (endDate != null) {
       // Set to end of day
-      final end = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+      final end = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+      );
       query = query.lte('created_at', end.toUtc().toIso8601String());
     }
 
@@ -1002,13 +1009,14 @@ class HODataService {
 
     var data = List<Map<String, dynamic>>.from(response);
 
-    // Member search (fuzzy search on name/phone in memory if needed, 
+    // Member search (fuzzy search on name/phone in memory if needed,
     // or we could try filtering on joined column if Supabase version supports it easily)
     if (memberName != null && memberName.isNotEmpty) {
       data = data.where((item) {
         final profile = item['profiles'] as Map<String, dynamic>?;
         final name = (profile?['full_name'] as String?)?.toLowerCase() ?? '';
-        final phone = (profile?['phone_number'] as String?)?.toLowerCase() ?? '';
+        final phone =
+            (profile?['phone_number'] as String?)?.toLowerCase() ?? '';
         final search = memberName.toLowerCase();
         return name.contains(search) || phone.contains(search);
       }).toList();
@@ -1038,5 +1046,40 @@ class HODataService {
         .subscribe();
 
     return channel;
+  }
+
+  // ── GPS Bowser Management ──────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getBowserGpsList() async {
+    final response = await supabase
+        .from('ms_bowser_gps')
+        .select('*')
+        .order('id', ascending: true);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> createBowserGps(Map<String, dynamic> data) async {
+    await supabase.from('ms_bowser_gps').insert(data);
+    await logActivity(
+      actionType: 'GPS_BOWSER_CREATE',
+      description: 'Created new GPS Bowser: ${data['device_name']}',
+      metadata: data,
+    );
+  }
+
+  Future<void> updateBowserGps(int id, Map<String, dynamic> data) async {
+    await supabase.from('ms_bowser_gps').update(data).eq('id', id);
+    await logActivity(
+      actionType: 'GPS_BOWSER_UPDATE',
+      description: 'Updated GPS Bowser ID: $id',
+      metadata: data,
+    );
+  }
+
+  Future<void> deleteBowserGps(int id) async {
+    await supabase.from('ms_bowser_gps').delete().eq('id', id);
+    await logActivity(
+      actionType: 'GPS_BOWSER_DELETE',
+      description: 'Deleted GPS Bowser ID: $id',
+    );
   }
 }
