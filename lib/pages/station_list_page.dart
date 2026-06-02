@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/theme.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 
@@ -93,119 +93,226 @@ class _StationListPageState extends State<StationListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width;
+    final bool isMobile = width <= 768;
+
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Stations Management',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Manage your fuel stations across all regions',
-                    style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _showEditSheet(),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add New Station'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HOColors.accent.withOpacity(0.9),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          // ── Search and Filter Bar ──────────────────────────────────────────────
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: HOColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white10),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (val) => _applyFilters(),
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: 'Search by station name or ID...',
-                      hintStyle: TextStyle(
-                        color: Colors.white.withOpacity(0.3),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.white.withOpacity(0.5),
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 15,
+          // Header Row
+          width < 700
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Stations Management',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: HOColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedRegion,
-                    dropdownColor: HOColors.surface,
-                    icon: const Icon(Icons.filter_list, color: HOColors.accent),
-                    items: _regions.map((region) {
-                      return DropdownMenuItem(
-                        value: region,
-                        child: Text(
-                          region,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
+                    const SizedBox(height: 4),
+                    Text(
+                      'Manage your fuel stations across all regions',
+                      style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showEditSheet(),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add New Station'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HOColors.accent.withOpacity(0.9),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() => _selectedRegion = val);
-                        _applyFilters();
-                      }
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Stations Management',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Manage your fuel stations across all regions',
+                          style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _showEditSheet(),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add New Station'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: HOColors.accent.withOpacity(0.9),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 32),
+
+          // Search and Filter Bar
+          width < 600
+              ? Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: HOColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (val) => _applyFilters(),
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: 'Search by station name or ID...',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.3),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: HOColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedRegion,
+                          dropdownColor: HOColors.surface,
+                          isExpanded: true,
+                          icon: const Icon(Icons.filter_list, color: HOColors.accent),
+                          items: _regions.map((region) {
+                            return DropdownMenuItem(
+                              value: region,
+                              child: Text(
+                                region,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedRegion = val);
+                              _applyFilters();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: HOColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (val) => _applyFilters(),
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: 'Search by station name or ID...',
+                            hintStyle: TextStyle(
+                              color: Colors.white.withOpacity(0.3),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: HOColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedRegion,
+                          dropdownColor: HOColors.surface,
+                          icon: const Icon(Icons.filter_list, color: HOColors.accent),
+                          items: _regions.map((region) {
+                            return DropdownMenuItem(
+                              value: region,
+                              child: Text(
+                                region,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedRegion = val);
+                              _applyFilters();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
 
           const SizedBox(height: 32),
 
@@ -234,10 +341,11 @@ class _StationListPageState extends State<StationListPage> {
                   )
                 : GridView.builder(
                     gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                        SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 450,
-                          mainAxisExtent:
-                              260, // Increased to accommodate Phone/Address
+                          mainAxisExtent: width < 600
+                              ? 290
+                              : (width < 1100 ? 275 : 260),
                           crossAxisSpacing: 24,
                           mainAxisSpacing: 24,
                         ),
@@ -254,6 +362,9 @@ class _StationListPageState extends State<StationListPage> {
   }
 
   Widget _buildStationCard(Map<String, dynamic> station) {
+    final double width = MediaQuery.of(context).size.width;
+    final bool isSmallScreen = width < 600;
+
     return Container(
       decoration: BoxDecoration(
         color: HOColors.surface,
@@ -272,7 +383,7 @@ class _StationListPageState extends State<StationListPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
-            width: 130,
+            width: isSmallScreen ? 115 : 130,
             child:
                 station['image_url'] != null &&
                     station['image_url'].toString().isNotEmpty
@@ -299,7 +410,10 @@ class _StationListPageState extends State<StationListPage> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 12.0 : 20.0,
+                vertical: isSmallScreen ? 14.0 : 20.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -370,7 +484,7 @@ class _StationListPageState extends State<StationListPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       ElevatedButton.icon(
                         onPressed: () => _showEditSheet(station),
                         icon: const Icon(Icons.edit_outlined, size: 14),
@@ -462,6 +576,13 @@ class _StationEditDialogState extends State<_StationEditDialog> {
   late TextEditingController _latController;
   late TextEditingController _lngController;
 
+  late TextEditingController _dbHostController;
+  late TextEditingController _dbUserController;
+  late TextEditingController _dbPassController;
+  late TextEditingController _dbNameController;
+  late TextEditingController _dbPortController;
+  late TextEditingController _apiUrlController;
+
   String? _selectedRegion;
   List<String> _availableRegions = [];
   String? _imageUrl;
@@ -483,7 +604,61 @@ class _StationEditDialogState extends State<_StationEditDialog> {
     _selectedRegion = s?['region'];
     _imageUrl = s?['image_url'];
 
+    _dbHostController = TextEditingController();
+    _dbUserController = TextEditingController();
+    _dbPassController = TextEditingController();
+    _dbNameController = TextEditingController();
+    _dbPortController = TextEditingController(text: '1433');
+    _apiUrlController = TextEditingController();
+
     _fetchRegions();
+    if (s != null) {
+      _loadStationDbConfig();
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _idController.dispose();
+    _addressController.dispose();
+    _phoneController.dispose();
+    _mapUrlController.dispose();
+    _latController.dispose();
+    _lngController.dispose();
+    _dbHostController.dispose();
+    _dbUserController.dispose();
+    _dbPassController.dispose();
+    _dbNameController.dispose();
+    _dbPortController.dispose();
+    _apiUrlController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadStationDbConfig() async {
+    try {
+      final stationId = widget.station!['station_id']?.toString();
+      if (stationId != null && stationId.isNotEmpty) {
+        final res = await HODataService().supabase
+            .from('auth')
+            .select('db_host, db_user, db_pass, db_name, api_url, db_port')
+            .eq('station_code', stationId)
+            .limit(1)
+            .maybeSingle();
+        if (res != null && mounted) {
+          setState(() {
+            _dbHostController.text = res['db_host'] ?? '';
+            _dbUserController.text = res['db_user'] ?? '';
+            _dbPassController.text = res['db_pass'] ?? '';
+            _dbNameController.text = res['db_name'] ?? '';
+            _dbPortController.text = res['db_port']?.toString() ?? '1433';
+            _apiUrlController.text = res['api_url'] ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      print("Error loading station DB config: $e");
+    }
   }
 
   Future<void> _fetchRegions() async {
@@ -578,10 +753,54 @@ class _StationEditDialogState extends State<_StationEditDialog> {
         data['lng'] = null;
       }
 
+      final String oldStationId = widget.station?['station_id'] ?? '';
+      final String newStationId = _idController.text;
+
+      // 1. If station already existed and ID changed, update station_code in auth
+      if (oldStationId.isNotEmpty && oldStationId != newStationId) {
+        await HODataService().supabase
+            .from('auth')
+            .update({'station_code': newStationId})
+            .eq('station_code', oldStationId);
+      }
+
+      // 2. Save/Update Station
       if (widget.station == null) {
         await HODataService().createStation(data);
       } else {
         await HODataService().updateStation(widget.station!['id'], data);
+      }
+
+      // 3. Save/Update DB Config in auth table
+      final dbConfigData = {
+        'db_host': _dbHostController.text,
+        'db_user': _dbUserController.text,
+        'db_pass': _dbPassController.text,
+        'db_name': _dbNameController.text,
+        'db_port': _dbPortController.text.isEmpty ? '1433' : _dbPortController.text,
+        'api_url': _apiUrlController.text,
+      };
+
+      final existingUsers = await HODataService().supabase
+          .from('auth')
+          .select('id')
+          .eq('station_code', newStationId);
+
+      if (existingUsers.isNotEmpty) {
+        await HODataService().supabase
+            .from('auth')
+            .update(dbConfigData)
+            .eq('station_code', newStationId);
+      } else {
+        // Insert a default config record
+        await HODataService().supabase.from('auth').insert({
+          'username': 'config_$newStationId',
+          'password': 'config_$newStationId',
+          'fullname': 'Config ${_nameController.text}',
+          'userlevel': 11,
+          'station_code': newStationId,
+          ...dbConfigData,
+        });
       }
 
       widget.onSave();
@@ -763,6 +982,89 @@ class _StationEditDialogState extends State<_StationEditDialog> {
                   ],
                 ),
 
+                const SizedBox(height: 32),
+                const Row(
+                  children: [
+                    Icon(Icons.storage_outlined, color: HOColors.accent),
+                    SizedBox(width: 8),
+                    Text(
+                      'Database Connection Settings',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildField(
+                        _dbHostController,
+                        "Database Host (e.g. nok-server.netbird.cloud)",
+                        Icons.cloud_queue_outlined,
+                        required: false,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildField(
+                        _dbPortController,
+                        "Port (default 1433)",
+                        Icons.settings_input_component_outlined,
+                        isNumber: true,
+                        required: false,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildField(
+                        _dbUserController,
+                        "DB Username",
+                        Icons.person_outline,
+                        required: false,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildField(
+                        _dbPassController,
+                        "DB Password",
+                        Icons.lock_outline,
+                        required: false,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildField(
+                        _dbNameController,
+                        "Database Name",
+                        Icons.table_chart_outlined,
+                        required: false,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildField(
+                        _apiUrlController,
+                        "Local API URL (e.g. http://localhost:3000)",
+                        Icons.link_outlined,
+                        required: false,
+                      ),
+                    ),
+                  ],
+                ),
+
                 const SizedBox(height: 48),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -819,6 +1121,7 @@ class _StationEditDialogState extends State<_StationEditDialog> {
     IconData icon, {
     int maxLines = 1,
     bool isNumber = false,
+    bool required = true,
   }) {
     return TextFormField(
       controller: controller,
@@ -851,8 +1154,8 @@ class _StationEditDialogState extends State<_StationEditDialog> {
         ),
       ),
       validator: (v) {
-        if (v == null || v.isEmpty) return 'Required';
-        if (isNumber && double.tryParse(v) == null) {
+        if (required && (v == null || v.isEmpty)) return 'Required';
+        if (isNumber && v != null && v.isNotEmpty && double.tryParse(v) == null) {
           return 'Must be a valid number';
         }
         return null;

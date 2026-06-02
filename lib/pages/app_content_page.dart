@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/theme.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
 
 class AppContentPage extends StatefulWidget {
   const AppContentPage({super.key});

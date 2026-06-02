@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/pages/report_widgets.dart';
-import 'package:ho_msloyalty/pages/sales_breakdown_page.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
-import 'package:ho_msloyalty/theme.dart';
+import 'package:ms_dashboard/pages/report_widgets.dart';
+import 'package:ms_dashboard/pages/sales_breakdown_page.dart';
+import 'package:ms_dashboard/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
 import 'package:intl/intl.dart';
 import 'package:csv/csv.dart';
 import 'package:universal_html/html.dart' as html;
 import 'dart:convert';
 
 class ReportsPage extends StatefulWidget {
-  const ReportsPage({super.key});
+  final String mode; // 'sales' or 'loyalty'
+  const ReportsPage({super.key, this.mode = 'sales'});
 
   @override
   State<ReportsPage> createState() => _ReportsPageState();
@@ -39,15 +40,18 @@ class _ReportsPageState extends State<ReportsPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _loadStations();
     _fetchAllReports();
   }
 
   Future<void> _fetchAllReports() async {
-    _fetchSaleTransactions();
-    _fetchPointIssues();
-    _fetchRedemptions();
+    if (widget.mode == 'loyalty') {
+      _fetchPointIssues();
+      _fetchRedemptions();
+    } else {
+      _fetchSaleTransactions();
+    }
   }
 
   Future<void> _loadStations() async {
@@ -280,6 +284,8 @@ class _ReportsPageState extends State<ReportsPage>
 
   @override
   Widget build(BuildContext context) {
+    final bool isLoyalty = widget.mode == 'loyalty';
+
     return Column(
       children: [
         // TabBar Header
@@ -291,24 +297,30 @@ class _ReportsPageState extends State<ReportsPage>
             indicatorColor: HOColors.accent,
             labelColor: HOColors.accent,
             unselectedLabelColor: Colors.white60,
-            tabs: const [
-              Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
-              Tab(icon: Icon(Icons.receipt_long), text: 'Sale Transactions'),
-              Tab(icon: Icon(Icons.stars), text: 'Point Issues'),
-              Tab(icon: Icon(Icons.card_giftcard), text: 'Redemptions'),
-            ],
+            tabs: isLoyalty
+                ? const [
+                    Tab(icon: Icon(Icons.stars), text: 'Point Issues'),
+                    Tab(icon: Icon(Icons.card_giftcard), text: 'Redemptions'),
+                  ]
+                : const [
+                    Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
+                    Tab(icon: Icon(Icons.receipt_long), text: 'Sale Transactions'),
+                  ],
           ),
         ),
         // TabBar Content
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: [
-              const SalesBreakdownPage(), // Existing UI
-              _buildSaleTransactionsTab(),
-              _buildPointIssuesTab(),
-              _buildRedemptionsTab(),
-            ],
+            children: isLoyalty
+                ? [
+                    _buildPointIssuesTab(),
+                    _buildRedemptionsTab(),
+                  ]
+                : [
+                    const SalesBreakdownPage(), // Existing UI
+                    _buildSaleTransactionsTab(),
+                  ],
           ),
         ),
       ],

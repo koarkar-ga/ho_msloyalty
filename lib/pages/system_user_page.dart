@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
-import 'package:ho_msloyalty/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
 import 'dart:ui';
 
 class SystemUserPage extends StatefulWidget {
@@ -69,128 +69,183 @@ class _SystemUserPageState extends State<SystemUserPage>
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width;
+    final bool isMobile = width <= 768;
+
+    final titleWidget = Text(
+      'System User Management',
+      style: TextStyle(
+        fontSize: isMobile ? 24 : 28,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    );
+
+    final buttonsList = [
+      ElevatedButton.icon(
+        onPressed: _showHOServerConfigDialog,
+        icon: const Icon(Icons.settings_ethernet),
+        label: const Text('HO Server Config'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.indigo.shade700,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+      ),
+      ElevatedButton.icon(
+        onPressed: _showHOSetupPasswordDialog,
+        icon: const Icon(Icons.vpn_key),
+        label: const Text('Setup Password'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.teal.shade700,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+      ),
+      ElevatedButton.icon(
+        onPressed: () => _showEditDialog(null, false),
+        icon: const Icon(Icons.dock),
+        label: const Text('Add Station User'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blueGrey.shade700,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 12,
+          ),
+        ),
+      ),
+      ElevatedButton.icon(
+        onPressed: () => _showEditDialog(null, true),
+        icon: const Icon(Icons.admin_panel_settings),
+        label: const Text('Add HO User'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: HOColors.accent,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 12,
+          ),
+        ),
+      ),
+    ];
+
+    Widget topActions;
+    if (width < 1000) {
+      topActions = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          titleWidget,
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: buttonsList,
+          ),
+        ],
+      );
+    } else {
+      topActions = Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          titleWidget,
+          Row(
+            children: [
+              buttonsList[0],
+              const SizedBox(width: 12),
+              buttonsList[1],
+              const SizedBox(width: 16),
+              buttonsList[2],
+              const SizedBox(width: 16),
+              buttonsList[3],
+            ],
+          ),
+        ],
+      );
+    }
+
+    final searchField = SizedBox(
+      width: width < 700 ? double.infinity : 300,
+      height: 40,
+      child: TextField(
+        onChanged: (v) => setState(() => _searchQuery = v),
+        style: const TextStyle(color: Colors.white, fontSize: 13),
+        decoration: InputDecoration(
+          hintText: 'Search by username or station...',
+          hintStyle: const TextStyle(color: Colors.white38),
+          prefixIcon: const Icon(
+            Icons.search,
+            color: Colors.white38,
+            size: 18,
+          ),
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.05),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+
+    Widget searchAndTabBar;
+    if (width < 700) {
+      searchAndTabBar = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          searchField,
+          const SizedBox(height: 16),
+          TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: 'Station App Users'),
+              Tab(text: 'HO Dashboard Users'),
+            ],
+            labelColor: HOColors.accent,
+            unselectedLabelColor: Colors.white54,
+            indicatorColor: HOColors.accent,
+            isScrollable: true,
+          ),
+        ],
+      );
+    } else {
+      searchAndTabBar = Row(
+        children: [
+          Expanded(
+            child: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Station App Users'),
+                Tab(text: 'HO Dashboard Users'),
+              ],
+              labelColor: HOColors.accent,
+              unselectedLabelColor: Colors.white54,
+              indicatorColor: HOColors.accent,
+              isScrollable: true,
+            ),
+          ),
+          const SizedBox(width: 24),
+          searchField,
+        ],
+      );
+    }
+
     return Scaffold(
       backgroundColor: HOColors.background,
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'System User Management',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                Row(
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _showHOServerConfigDialog,
-                      icon: const Icon(Icons.settings_ethernet),
-                      label: const Text('HO Server Config'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: _showHOSetupPasswordDialog,
-                      icon: const Icon(Icons.vpn_key),
-                      label: const Text('Setup Password'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton.icon(
-                      onPressed: () => _showEditDialog(null, false),
-                      icon: const Icon(Icons.dock),
-                      label: const Text('Add Station User'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton.icon(
-                      onPressed: () => _showEditDialog(null, true),
-                      icon: const Icon(Icons.admin_panel_settings),
-                      label: const Text('Add HO User'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HOColors.accent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            topActions,
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TabBar(
-                    controller: _tabController,
-                    tabs: const [
-                      Tab(text: 'Station App Users'),
-                      Tab(text: 'HO Dashboard Users'),
-                    ],
-                    labelColor: HOColors.accent,
-                    unselectedLabelColor: Colors.white54,
-                    indicatorColor: HOColors.accent,
-                    isScrollable: true,
-                  ),
-                ),
-                const SizedBox(width: 24),
-                SizedBox(
-                  width: 300,
-                  height: 40,
-                  child: TextField(
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: InputDecoration(
-                      hintText: 'Search by username or station...',
-                      hintStyle: const TextStyle(color: Colors.white38),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: Colors.white38,
-                        size: 18,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
-                      contentPadding: EdgeInsets.zero,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            searchAndTabBar,
             const SizedBox(height: 16),
             Expanded(
               child: _isLoading
@@ -256,6 +311,9 @@ class _UserList extends StatelessWidget {
       );
     }
 
+    final double width = MediaQuery.of(context).size.width;
+    final bool isSmallScreen = width < 600;
+
     return Card(
       color: HOColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -273,27 +331,58 @@ class _UserList extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            subtitle: Text(
-              'Username: ${user['username']} | ${isHO ? "HO Admin" : "Station: ${user["station_name"] ?? user["station_code"] ?? "N/A"}"}',
-              style: const TextStyle(color: Colors.white54),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                Text(
+                  'Username: ${user['username']}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isHO ? "HO Admin" : "Station: ${user["station_name"] ?? user["station_code"] ?? "N/A"}",
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+                if (isSmallScreen) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: HOColors.accent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'Level ${user['userlevel']}',
+                      style: TextStyle(color: HOColors.accent, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ],
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                if (!isSmallScreen) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: HOColors.accent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Level ${user['userlevel']}',
+                      style: TextStyle(color: HOColors.accent, fontSize: 12),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: HOColors.accent.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Level ${user['userlevel']}',
-                    style: TextStyle(color: HOColors.accent, fontSize: 12),
-                  ),
-                ),
+                  const SizedBox(width: 4),
+                ],
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.white70),
                   onPressed: () => onEdit(user),
@@ -480,10 +569,10 @@ class _UserEditDialogState extends State<_UserEditDialog> {
       child: Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          width: 500,
-          padding: const EdgeInsets.all(32),
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width < 500 ? 16 : 32),
           decoration: BoxDecoration(
-            color: HOColors.surface.withOpacity(0.9),
+            color: HOColors.surface.withOpacity(0.95),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
@@ -739,32 +828,38 @@ class _UserEditDialogState extends State<_UserEditDialog> {
             ),
           ),
           const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: _stationScreens.length,
-            itemBuilder: (context, index) {
-              final screen = _stationScreens[index];
-              return CheckboxListTile(
-                title: Text(
-                  screen,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final int crossCount = constraints.maxWidth < 350 ? 1 : 2;
+              final double aspectRatio = constraints.maxWidth < 350 ? 6 : 4;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossCount,
+                  childAspectRatio: aspectRatio,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
                 ),
-                value: _permissions[screen],
-                onChanged: (val) {
-                  setState(() => _permissions[screen] = val!);
+                itemCount: _stationScreens.length,
+                itemBuilder: (context, index) {
+                  final screen = _stationScreens[index];
+                  return CheckboxListTile(
+                    title: Text(
+                      screen,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                    value: _permissions[screen],
+                    onChanged: (val) {
+                      setState(() => _permissions[screen] = val!);
+                    },
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    activeColor: HOColors.accent,
+                    checkColor: Colors.white,
+                    controlAffinity: ListTileControlAffinity.leading,
+                  );
                 },
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                activeColor: HOColors.accent,
-                checkColor: Colors.white,
-                controlAffinity: ListTileControlAffinity.leading,
               );
             },
           ),
@@ -846,10 +941,10 @@ class _HOServerConfigDialogState extends State<_HOServerConfigDialog> {
       child: Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          width: 500,
-          padding: const EdgeInsets.all(32),
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width < 500 ? 16 : 32),
           decoration: BoxDecoration(
-            color: HOColors.surface.withOpacity(0.9),
+            color: HOColors.surface.withOpacity(0.95),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),

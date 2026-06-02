@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
-import 'package:ho_msloyalty/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
 import 'dart:ui';
 import 'package:video_player/video_player.dart';
 

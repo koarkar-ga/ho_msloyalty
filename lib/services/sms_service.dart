@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:ho_msloyalty/config.dart';
+import 'package:ms_dashboard/config.dart';
 import 'package:flutter/foundation.dart';
 
 class SMSService {

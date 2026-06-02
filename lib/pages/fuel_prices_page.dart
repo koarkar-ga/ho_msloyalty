@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/theme.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
 
 class FuelPricesPage extends StatefulWidget {
   const FuelPricesPage({super.key});
@@ -194,46 +194,51 @@ class _FuelPricesPageState extends State<FuelPricesPage>
           border: Border.all(color: Colors.white10),
         ),
         child: SingleChildScrollView(
-          child: DataTable(
-            headingTextStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: HOColors.accent,
-            ),
-            dataTextStyle: const TextStyle(color: Colors.white),
-            columns: const [
-              DataColumn(label: Text('Region')),
-              DataColumn(label: Text('Octane 92')),
-              DataColumn(label: Text('Octane 95')),
-              DataColumn(label: Text('Diesel')),
-              DataColumn(label: Text('Premium Diesel')),
-              DataColumn(label: Text('Actions')),
-            ],
-            rows: regionalPrices.map((region) {
-              return DataRow(
-                cells: [
-                  DataCell(
-                    Text(
-                      region['region'] ?? 'Unknown',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataCell(Text('${region['octane_92'] ?? 0} MMK')),
-                  DataCell(Text('${region['octane_95'] ?? 0} MMK')),
-                  DataCell(Text('${region['diesel'] ?? 0} MMK')),
-                  DataCell(Text('${region['premium_diesel'] ?? 0} MMK')),
-                  DataCell(
-                    IconButton(
-                      icon: const Icon(
-                        Icons.edit,
-                        color: Colors.amber,
-                        size: 20,
+          scrollDirection: Axis.vertical,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingTextStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: HOColors.accent,
+                fontSize: 12,
+              ),
+              dataTextStyle: const TextStyle(color: Colors.white),
+              columns: const [
+                DataColumn(label: Text('Region')),
+                DataColumn(label: Text('Octane 92')),
+                DataColumn(label: Text('Octane 95')),
+                DataColumn(label: Text('Diesel')),
+                DataColumn(label: Text('Premium Diesel')),
+                DataColumn(label: Text('Actions')),
+              ],
+              rows: regionalPrices.map((region) {
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      Text(
+                        region['region'] ?? 'Unknown',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      onPressed: () => _showEditRegionalDialog(region),
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                    DataCell(Text('${region['octane_92'] ?? 0} MMK')),
+                    DataCell(Text('${region['octane_95'] ?? 0} MMK')),
+                    DataCell(Text('${region['diesel'] ?? 0} MMK')),
+                    DataCell(Text('${region['premium_diesel'] ?? 0} MMK')),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
+                        onPressed: () => _showEditRegionalDialog(region),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
@@ -255,133 +260,138 @@ class _FuelPricesPageState extends State<FuelPricesPage>
           border: Border.all(color: Colors.white10),
         ),
         child: SingleChildScrollView(
-          child: DataTable(
-            headingTextStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: HOColors.accent,
-            ),
-            dataTextStyle: const TextStyle(color: Colors.white),
-            columns: const [
-              DataColumn(label: Text('Station Name')),
-              DataColumn(label: Text('Region')),
-              DataColumn(label: Text('Octane 92')),
-              DataColumn(label: Text('Octane 95')),
-              DataColumn(label: Text('Diesel')),
-              DataColumn(label: Text('Prem. Diesel')),
-              DataColumn(label: Text('Override Status')),
-              DataColumn(label: Text('Actions')),
-            ],
-            rows: _stations.map((station) {
-              final stationId = station['id'].toString();
-              // Find if this station has an override
-              final overrideData = overridePrices
-                  .cast<Map<String, dynamic>?>()
-                  .firstWhere(
-                    (p) => p != null && p['station_id'] == stationId,
-                    orElse: () => null,
-                  );
-
-              // If no override, find the regional price
-              Map<String, dynamic>? displayData = overrideData;
-              if (displayData == null) {
-                final stationRegion = station['region'] ?? '';
-                displayData = _fuelPrices
+          scrollDirection: Axis.vertical,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingTextStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: HOColors.accent,
+                fontSize: 12,
+              ),
+              dataTextStyle: const TextStyle(color: Colors.white),
+              columns: const [
+                DataColumn(label: Text('Station Name')),
+                DataColumn(label: Text('Region')),
+                DataColumn(label: Text('Octane 92')),
+                DataColumn(label: Text('Octane 95')),
+                DataColumn(label: Text('Diesel')),
+                DataColumn(label: Text('Prem. Diesel')),
+                DataColumn(label: Text('Override Status')),
+                DataColumn(label: Text('Actions')),
+              ],
+              rows: _stations.map((station) {
+                final stationId = station['id'].toString();
+                // Find if this station has an override
+                final overrideData = overridePrices
                     .cast<Map<String, dynamic>?>()
                     .firstWhere(
-                      (p) =>
-                          p != null &&
-                          p['station_id'] == null &&
-                          p['region'] == stationRegion,
+                      (p) => p != null && p['station_id'] == stationId,
                       orElse: () => null,
                     );
-              }
 
-              final bool hasOverride = overrideData != null;
+                // If no override, find the regional price
+                Map<String, dynamic>? displayData = overrideData;
+                if (displayData == null) {
+                  final stationRegion = station['region'] ?? '';
+                  displayData = _fuelPrices
+                      .cast<Map<String, dynamic>?>()
+                      .firstWhere(
+                        (p) =>
+                            p != null &&
+                            p['station_id'] == null &&
+                            p['region'] == stationRegion,
+                        orElse: () => null,
+                      );
+                }
 
-              return DataRow(
-                cells: [
-                  DataCell(
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          station['name'] ?? 'Unknown',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'ID: ${station['station_id'] ?? ''}',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.white54,
+                final bool hasOverride = overrideData != null;
+
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            station['name'] ?? 'Unknown',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                        ),
-                      ],
+                          Text(
+                            'ID: ${station['station_id'] ?? ''}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.white54,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  DataCell(Text(station['region'] ?? 'Unknown')),
-                  DataCell(Text('${displayData?['octane_92'] ?? '-'} MMK')),
-                  DataCell(Text('${displayData?['octane_95'] ?? '-'} MMK')),
-                  DataCell(Text('${displayData?['diesel'] ?? '-'} MMK')),
-                  DataCell(
-                    Text('${displayData?['premium_diesel'] ?? '-'} MMK'),
-                  ),
-                  DataCell(
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: hasOverride
-                            ? Colors.orange.withOpacity(0.2)
-                            : Colors.green.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        hasOverride ? 'Overridden' : 'Regional Default',
-                        style: TextStyle(
+                    DataCell(Text(station['region'] ?? 'Unknown')),
+                    DataCell(Text('${displayData?['octane_92'] ?? '-'} MMK')),
+                    DataCell(Text('${displayData?['octane_95'] ?? '-'} MMK')),
+                    DataCell(Text('${displayData?['diesel'] ?? '-'} MMK')),
+                    DataCell(
+                      Text('${displayData?['premium_diesel'] ?? '-'} MMK'),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
                           color: hasOverride
-                              ? Colors.orangeAccent
-                              : Colors.greenAccent,
-                          fontSize: 12,
+                              ? Colors.orange.withOpacity(0.2)
+                              : Colors.green.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          hasOverride ? 'Overridden' : 'Regional Default',
+                          style: TextStyle(
+                            color: hasOverride
+                                ? Colors.orangeAccent
+                                : Colors.greenAccent,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.edit,
-                            color: Colors.amber,
-                            size: 20,
-                          ),
-                          tooltip: 'Edit Override',
-                          onPressed: () => _showEditStationDialog(
-                            station as Map<String, dynamic>,
-                            overrideData,
-                          ),
-                        ),
-                        if (hasOverride)
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           IconButton(
                             icon: const Icon(
-                              Icons.delete,
-                              color: Colors.redAccent,
+                              Icons.edit,
+                              color: Colors.amber,
                               size: 20,
                             ),
-                            tooltip: 'Remove Override',
-                            onPressed: () =>
-                                _deleteOverride(overrideData['id']),
+                            tooltip: 'Edit Override',
+                            onPressed: () => _showEditStationDialog(
+                              station as Map<String, dynamic>,
+                              overrideData,
+                            ),
                           ),
-                      ],
+                          if (hasOverride)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
+                              tooltip: 'Remove Override',
+                              onPressed: () =>
+                                  _deleteOverride(overrideData['id']),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),

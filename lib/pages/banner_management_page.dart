@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
-import 'package:ho_msloyalty/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
 import 'dart:ui';
 
 class BannerManagementPage extends StatefulWidget {
@@ -78,40 +78,83 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 768;
+    final double pagePadding = isMobile ? 16.0 : 24.0;
+    final double gapHeight = isMobile ? 16.0 : 24.0;
+
+    int crossAxisCount = 3;
+    if (screenWidth < 600) {
+      crossAxisCount = 1;
+    } else if (screenWidth < 950) {
+      crossAxisCount = 2;
+    }
+
     return Scaffold(
       backgroundColor: HOColors.background,
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(pagePadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Banner Management',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+            isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Banner Management',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showEditDialog(),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Banner'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HOColors.accent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Banner Management',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _showEditDialog(),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Banner'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HOColors.accent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _showEditDialog(),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Banner'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: HOColors.accent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+            SizedBox(height: gapHeight),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -123,13 +166,12 @@ class _BannerManagementPageState extends State<BannerManagementPage> {
                       ),
                     )
                   : GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 20,
-                            childAspectRatio: 16 / 9,
-                          ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: isMobile ? 12 : 20,
+                        mainAxisSpacing: isMobile ? 12 : 20,
+                        childAspectRatio: 16 / 9,
+                      ),
                       itemCount: _banners.length,
                       itemBuilder: (context, index) {
                         final banner = _banners[index];
@@ -312,13 +354,16 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 600;
+
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
       child: Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          width: 500,
-          padding: const EdgeInsets.all(32),
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
           decoration: BoxDecoration(
             color: HOColors.surface.withOpacity(0.9),
             borderRadius: BorderRadius.circular(24),
@@ -326,111 +371,113 @@ class _BannerEditDialogState extends State<_BannerEditDialog> {
           ),
           child: Form(
             key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.banner == null ? 'Add Banner' : 'Edit Banner',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                GestureDetector(
-                  onTap: _isSaving ? null : _pickImage,
-                  child: Container(
-                    height: 180,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white10,
-                      borderRadius: BorderRadius.circular(16),
-                      image: _previewBytes != null
-                          ? DecorationImage(
-                              image: MemoryImage(_previewBytes!),
-                              fit: BoxFit.cover,
-                            )
-                          : (_imageUrl != null
-                                ? DecorationImage(
-                                    image: NetworkImage(_imageUrl!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null),
-                    ),
-                    child: (_previewBytes == null && _imageUrl == null)
-                        ? const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_a_photo,
-                                size: 40,
-                                color: Colors.white54,
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Select Banner Image',
-                                style: TextStyle(color: Colors.white54),
-                              ),
-                            ],
-                          )
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _actionUrlController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Action URL (Optional)',
-                    labelStyle: const TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.banner == null ? 'Add Banner' : 'Edit Banner',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text(
-                    'Is Active',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  value: _isActive,
-                  onChanged: (val) => setState(() => _isActive = val),
-                  activeThumbColor: HOColors.accent,
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: _isSaving ? null : _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HOColors.accent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
+                  const SizedBox(height: 32),
+                  GestureDetector(
+                    onTap: _isSaving ? null : _pickImage,
+                    child: Container(
+                      height: 180,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(16),
+                        image: _previewBytes != null
+                            ? DecorationImage(
+                                image: MemoryImage(_previewBytes!),
+                                fit: BoxFit.cover,
+                              )
+                            : (_imageUrl != null
+                                  ? DecorationImage(
+                                      image: NetworkImage(_imageUrl!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                      child: (_previewBytes == null && _imageUrl == null)
+                          ? const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_a_photo,
+                                  size: 40,
+                                  color: Colors.white54,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Select Banner Image',
+                                  style: TextStyle(color: Colors.white54),
+                                ),
+                              ],
                             )
-                          : const Text('Save'),
+                          : null,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _actionUrlController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Action URL (Optional)',
+                      labelStyle: const TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.05),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text(
+                      'Is Active',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    value: _isActive,
+                    onChanged: (val) => setState(() => _isActive = val),
+                    activeThumbColor: HOColors.accent,
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 16),
+                      ElevatedButton(
+                        onPressed: _isSaving ? null : _save,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HOColors.accent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 16,
+                          ),
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Save'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

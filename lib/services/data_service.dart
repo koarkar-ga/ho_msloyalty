@@ -693,12 +693,63 @@ class HODataService {
     );
   }
 
-  // ── App Version Management ──────────────────────────────────────────
-  Future<List<Map<String, dynamic>>> getAppVersions() async {
+  // ── IT Departments ─────────────────────────────────────────────────
+  Future<List<String>> getITDepartments() async {
     final response = await supabase
-        .from('app_versions')
-        .select('*')
-        .order('created_at', ascending: false);
+        .from('it_departments')
+        .select('name')
+        .order('name');
+    return (response as List).map((r) => r['name'].toString()).toList();
+  }
+
+  Future<void> addITDepartment(String name) async {
+    await supabase.from('it_departments').insert({'name': name});
+    await logActivity(
+      actionType: 'SYSTEM_CONFIG',
+      description: 'Added new IT department: $name',
+    );
+  }
+
+  Future<void> deleteITDepartment(String name) async {
+    await supabase.from('it_departments').delete().eq('name', name);
+    await logActivity(
+      actionType: 'SYSTEM_CONFIG',
+      description: 'Deleted IT department: $name',
+    );
+  }
+
+  // ── IT Companies (Company Types) ───────────────────────────────────
+  Future<List<String>> getITCompanies() async {
+    final response = await supabase
+        .from('it_companies')
+        .select('name')
+        .order('name');
+    return (response as List).map((r) => r['name'].toString()).toList();
+  }
+
+  Future<void> addITCompany(String name) async {
+    await supabase.from('it_companies').insert({'name': name});
+    await logActivity(
+      actionType: 'SYSTEM_CONFIG',
+      description: 'Added new IT company type: $name',
+    );
+  }
+
+  Future<void> deleteITCompany(String name) async {
+    await supabase.from('it_companies').delete().eq('name', name);
+    await logActivity(
+      actionType: 'SYSTEM_CONFIG',
+      description: 'Deleted IT company type: $name',
+    );
+  }
+
+  // ── App Version Management ──────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getAppVersions({String? appType}) async {
+    var query = supabase.from('app_versions').select('*');
+    if (appType != null) {
+      query = query.eq('app_type', appType);
+    }
+    final response = await query.order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }
 
@@ -1081,5 +1132,386 @@ class HODataService {
       actionType: 'GPS_BOWSER_DELETE',
       description: 'Deleted GPS Bowser ID: $id',
     );
+  }
+
+  // ── IT Assets Management ──────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getITAssets() async {
+    final response = await supabase
+        .from('it_assets')
+        .select('*')
+        .order('asset_code', ascending: true);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> upsertITAsset(Map<String, dynamic> data) async {
+    await supabase.from('it_assets').upsert(data);
+    await logActivity(
+      actionType: 'IT_ASSET_UPSERT',
+      description: 'Upserted IT Asset: ${data['asset_code']} - ${data['name']}',
+      metadata: data,
+    );
+  }
+
+  Future<void> upsertITAssets(List<Map<String, dynamic>> dataList) async {
+    await supabase.from('it_assets').upsert(dataList, onConflict: 'asset_code');
+    await logActivity(
+      actionType: 'IT_ASSETS_IMPORT',
+      description: 'Imported ${dataList.length} IT Assets via Excel/CSV',
+    );
+  }
+
+  Future<Map<String, dynamic>> createITAsset(Map<String, dynamic> data) async {
+    final response = await supabase.from('it_assets').insert(data).select().single();
+    await logActivity(
+      actionType: 'IT_ASSET_CREATE',
+      description: 'Created IT Asset: ${data['asset_code']} - ${data['name']}',
+      metadata: data,
+    );
+    return response;
+  }
+
+  Future<void> deleteITAsset(String id) async {
+    await supabase.from('it_assets').delete().eq('id', id);
+    await logActivity(
+      actionType: 'IT_ASSET_DELETE',
+      description: 'Deleted IT Asset ID: $id',
+    );
+  }
+
+  // ── IT Asset Components Management ──────────────────────────────────
+  Future<List<Map<String, dynamic>>> getAssetComponents(String assetId) async {
+    final response = await supabase
+        .from('asset_components')
+        .select('*')
+        .eq('asset_id', assetId)
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> upsertAssetComponent(Map<String, dynamic> data) async {
+    await supabase.from('asset_components').upsert(data);
+    await logActivity(
+      actionType: 'IT_ASSET_COMPONENT_UPSERT',
+      description: 'Upserted component: ${data['component_type']} - ${data['model']}',
+      metadata: data,
+    );
+  }
+
+  Future<void> upsertAssetComponents(List<Map<String, dynamic>> dataList) async {
+    await supabase.from('asset_components').upsert(dataList);
+    await logActivity(
+      actionType: 'IT_ASSET_COMPONENTS_BULK_UPSERT',
+      description: 'Bulk upserted ${dataList.length} components for IT Asset ID: ${dataList.isNotEmpty ? dataList[0]['asset_id'] : ''}',
+    );
+  }
+
+  Future<void> swapAssetComponent(String oldComponentId, Map<String, dynamic> newComponentData) async {
+    await supabase.from('asset_components').update({
+      'status': 'Replaced',
+      'replaced_at': DateTime.now().toUtc().toIso8601String(),
+    }).eq('id', oldComponentId);
+
+    await supabase.from('asset_components').insert(newComponentData);
+
+    await logActivity(
+      actionType: 'IT_ASSET_COMPONENT_SWAP',
+      description: 'Swapped component: Replaced ID $oldComponentId with new ${newComponentData['component_type']} - ${newComponentData['model']}',
+      metadata: {'old_id': oldComponentId, 'new': newComponentData},
+    );
+  }
+
+  Future<void> deleteAssetComponent(String id) async {
+    await supabase.from('asset_components').delete().eq('id', id);
+    await logActivity(
+      actionType: 'IT_ASSET_COMPONENT_DELETE',
+      description: 'Deleted Asset Component ID: $id',
+    );
+  }
+
+  // ── IT Ticket Support ─────────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getITTickets() async {
+    final response = await supabase
+        .from('it_complaints')
+        .select('*')
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> updateITTicketStatus(String id, String status, String? remarks) async {
+    final Map<String, dynamic> data = {
+      'status': status,
+      'remarks': remarks,
+    };
+    if (status == 'Resolved') {
+      data['resolved_at'] = DateTime.now().toUtc().toIso8601String();
+    }
+    await supabase.from('it_complaints').update(data).eq('id', id);
+    await logActivity(
+      actionType: 'IT_TICKET_UPDATE',
+      description: 'Updated IT Ticket ID: $id to $status',
+      metadata: data,
+    );
+  }
+
+  // ── Assets Transfer ───────────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getAssetTransfers() async {
+    final response = await supabase
+        .from('asset_transfers')
+        .select('*, it_assets(name, asset_code)')
+        .order('transfer_date', ascending: false);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> createAssetTransfer(Map<String, dynamic> data) async {
+    await supabase.from('asset_transfers').insert(data);
+    
+    // Also update asset's current status and assigned location/user details
+    final assetId = data['asset_id'];
+    await supabase.from('it_assets').update({
+      'assigned_user': data['to_user'],
+      'assigned_station': data['to_location'],
+      'status': 'Transferred',
+    }).eq('id', assetId);
+
+    await logActivity(
+      actionType: 'ASSET_TRANSFER_CREATE',
+      description: 'Created Asset Transfer for asset ID: $assetId',
+      metadata: data,
+    );
+  }
+
+  Future<void> deleteAssetTransfer(String id) async {
+    await supabase.from('asset_transfers').delete().eq('id', id);
+    await logActivity(
+      actionType: 'ASSET_TRANSFER_DELETE',
+      description: 'Deleted Asset Transfer ID: $id',
+    );
+  }
+
+  // ── Assets Maintenance ────────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getAssetMaintenances() async {
+    final response = await supabase
+        .from('asset_maintenances')
+        .select('*, it_assets(name, asset_code)')
+        .order('maintenance_date', ascending: false);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> createAssetMaintenance(Map<String, dynamic> data) async {
+    await supabase.from('asset_maintenances').insert(data);
+    
+    // Update asset status depending on maintenance status
+    final assetId = data['asset_id'];
+    final status = data['status'];
+    if (status == 'In Progress') {
+      await supabase.from('it_assets').update({'status': 'Under Repair'}).eq('id', assetId);
+    } else if (status == 'Completed') {
+      await supabase.from('it_assets').update({'status': 'Active'}).eq('id', assetId);
+    }
+
+    await logActivity(
+      actionType: 'ASSET_MAINTENANCE_CREATE',
+      description: 'Logged Maintenance for asset ID: $assetId',
+      metadata: data,
+    );
+  }
+
+  Future<void> deleteAssetMaintenance(String id) async {
+    await supabase.from('asset_maintenances').delete().eq('id', id);
+    await logActivity(
+      actionType: 'ASSET_MAINTENANCE_DELETE',
+      description: 'Deleted Asset Maintenance ID: $id',
+    );
+  }
+
+  // ── Assets Request ────────────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getAssetRequests() async {
+    final response = await supabase
+        .from('asset_requests')
+        .select('*, it_assets(*)')
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> createAssetRequest(Map<String, dynamic> data) async {
+    await supabase.from('asset_requests').insert(data);
+    await logActivity(
+      actionType: 'ASSET_REQUEST_CREATE',
+      description: 'Created Asset Request: ${data['request_no']}',
+      metadata: data,
+    );
+  }
+
+  Future<void> updateAssetRequestStatus(
+    String id,
+    String status,
+    String? remarks, {
+    String? assetId,
+    List<dynamic>? approvalHistory,
+  }) async {
+    final user = supabase.auth.currentUser;
+    final userName = user?.userMetadata?['fullname'] ?? 'HO Admin';
+    final Map<String, dynamic> data = {
+      'status': status,
+      'remarks': remarks,
+      'approved_by': userName,
+      'approved_at': DateTime.now().toUtc().toIso8601String(),
+      if (assetId != null) 'asset_id': assetId,
+      if (approvalHistory != null) 'approval_history': approvalHistory,
+    };
+    await supabase.from('asset_requests').update(data).eq('id', id);
+    await logActivity(
+      actionType: 'ASSET_REQUEST_UPDATE',
+      description: 'Updated Asset Request ID: $id to $status',
+      metadata: data,
+    );
+  }
+
+  // ── IT Asset Categories ─────────────────────────────────────────────
+  Future<List<String>> getITAssetCategories() async {
+    final response = await supabase
+        .from('it_asset_categories')
+        .select('name')
+        .order('name');
+    return (response as List).map((r) => r['name'].toString()).toList();
+  }
+
+  Future<void> addITAssetCategory(String name) async {
+    await supabase.from('it_asset_categories').insert({'name': name});
+    await logActivity(
+      actionType: 'SYSTEM_CONFIG',
+      description: 'Added new IT asset category: $name',
+    );
+  }
+
+  Future<void> deleteITAssetCategory(String name) async {
+    await supabase.from('it_asset_categories').delete().eq('name', name);
+    await logActivity(
+      actionType: 'SYSTEM_CONFIG',
+      description: 'Deleted IT asset category: $name',
+    );
+  }
+
+  // ── Comparison Report Data Fetching & Aggregation ───────────────────
+  Future<Map<String, dynamic>> getComparisonReport({
+    required int year,
+    required int month,
+    String? stationId,
+  }) async {
+    // 1. Calculate dates
+    final selectedStart = DateTime(year, month, 1);
+    final selectedEnd = (month == 12 ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1)).subtract(const Duration(seconds: 1));
+
+    final prevYear = month == 1 ? year - 1 : year;
+    final prevMonth = month == 1 ? 12 : month - 1;
+    final prevStart = DateTime(prevYear, prevMonth, 1);
+    final prevEnd = DateTime(prevYear, prevMonth + 1, 1).subtract(const Duration(seconds: 1));
+
+    final yoyStart = DateTime(year - 2, 1, 1);
+    final yoyEnd = DateTime(year, 12, 31, 23, 59, 59);
+
+    // 2. Fetch Selected Month Daily
+    var qSelected = supabase.from('fuel_transactions')
+        .select('created_at, liters, sale_liter, amount_mmk')
+        .gte('created_at', selectedStart.toUtc().toIso8601String())
+        .lte('created_at', selectedEnd.toUtc().toIso8601String());
+    if (stationId != null && stationId.isNotEmpty && stationId != 'ALL') {
+      qSelected = qSelected.eq('station_id', stationId);
+    }
+    final selectedRes = await qSelected;
+
+    // 3. Fetch Prev Month Daily
+    var qPrev = supabase.from('fuel_transactions')
+        .select('created_at, liters, sale_liter, amount_mmk')
+        .gte('created_at', prevStart.toUtc().toIso8601String())
+        .lte('created_at', prevEnd.toUtc().toIso8601String());
+    if (stationId != null && stationId.isNotEmpty && stationId != 'ALL') {
+      qPrev = qPrev.eq('station_id', stationId);
+    }
+    final prevRes = await qPrev;
+
+    // 4. Fetch YoY Monthly
+    var qYoy = supabase.from('fuel_transactions')
+        .select('created_at, liters, sale_liter, amount_mmk')
+        .gte('created_at', yoyStart.toUtc().toIso8601String())
+        .lte('created_at', yoyEnd.toUtc().toIso8601String());
+    if (stationId != null && stationId.isNotEmpty && stationId != 'ALL') {
+      qYoy = qYoy.eq('station_id', stationId);
+    }
+    final yoyRes = await qYoy;
+
+    // 5. Aggregate Selected Month Daily
+    final Map<int, Map<String, double>> selectedDailyMap = {};
+    for (var row in selectedRes) {
+      final dt = DateTime.parse(row['created_at']).toLocal();
+      final day = dt.day;
+      final liters = (row['liters'] ?? row['sale_liter'] ?? 0.0) as num;
+      final amount = (row['amount_mmk'] ?? 0.0) as num;
+
+      selectedDailyMap[day] ??= {'TotalLiter': 0.0, 'TotalAmount': 0.0};
+      selectedDailyMap[day]!['TotalLiter'] = selectedDailyMap[day]!['TotalLiter']! + liters.toDouble();
+      selectedDailyMap[day]!['TotalAmount'] = selectedDailyMap[day]!['TotalAmount']! + amount.toDouble();
+    }
+
+    // 6. Aggregate Prev Month Daily
+    final Map<int, Map<String, double>> prevDailyMap = {};
+    for (var row in prevRes) {
+      final dt = DateTime.parse(row['created_at']).toLocal();
+      final day = dt.day;
+      final liters = (row['liters'] ?? row['sale_liter'] ?? 0.0) as num;
+      final amount = (row['amount_mmk'] ?? 0.0) as num;
+
+      prevDailyMap[day] ??= {'TotalLiter': 0.0, 'TotalAmount': 0.0};
+      prevDailyMap[day]!['TotalLiter'] = prevDailyMap[day]!['TotalLiter']! + liters.toDouble();
+      prevDailyMap[day]!['TotalAmount'] = prevDailyMap[day]!['TotalAmount']! + amount.toDouble();
+    }
+
+    // 7. Aggregate YoY Monthly
+    final Map<String, Map<String, double>> yoyMonthlyMap = {};
+    for (var row in yoyRes) {
+      final dt = DateTime.parse(row['created_at']).toLocal();
+      final key = '${dt.year}-${dt.month}';
+      final liters = (row['liters'] ?? row['sale_liter'] ?? 0.0) as num;
+      final amount = (row['amount_mmk'] ?? 0.0) as num;
+
+      yoyMonthlyMap[key] ??= {'TotalLiter': 0.0, 'TotalAmount': 0.0};
+      yoyMonthlyMap[key]!['TotalLiter'] = yoyMonthlyMap[key]!['TotalLiter']! + liters.toDouble();
+      yoyMonthlyMap[key]!['TotalAmount'] = yoyMonthlyMap[key]!['TotalAmount']! + amount.toDouble();
+    }
+
+    final List<Map<String, dynamic>> selectedMonthDailyList = [];
+    selectedDailyMap.forEach((day, vals) {
+      selectedMonthDailyList.add({
+        'SaleDay': day,
+        'TotalLiter': vals['TotalLiter'],
+        'TotalAmount': vals['TotalAmount'],
+      });
+    });
+
+    final List<Map<String, dynamic>> prevMonthDailyList = [];
+    prevDailyMap.forEach((day, vals) {
+      prevMonthDailyList.add({
+        'SaleDay': day,
+        'TotalLiter': vals['TotalLiter'],
+        'TotalAmount': vals['TotalAmount'],
+      });
+    });
+
+    final List<Map<String, dynamic>> yoyList = [];
+    yoyMonthlyMap.forEach((key, vals) {
+      final parts = key.split('-');
+      yoyList.add({
+        'SaleYear': int.parse(parts[0]),
+        'SaleMonth': int.parse(parts[1]),
+        'TotalLiter': vals['TotalLiter'],
+        'TotalAmount': vals['TotalAmount'],
+      });
+    });
+
+    return {
+      'yoy': yoyList,
+      'selectedMonthDaily': selectedMonthDailyList,
+      'prevMonthDaily': prevMonthDailyList,
+    };
   }
 }

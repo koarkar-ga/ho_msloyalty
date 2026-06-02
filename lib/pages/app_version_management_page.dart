@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
-import 'package:ho_msloyalty/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
 import 'dart:ui';
+import 'package:file_picker/file_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppVersionManagementPage extends StatefulWidget {
   const AppVersionManagementPage({super.key});
@@ -11,23 +13,40 @@ class AppVersionManagementPage extends StatefulWidget {
       _AppVersionManagementPageState();
 }
 
-class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
+class _AppVersionManagementPageState extends State<AppVersionManagementPage>
+    with SingleTickerProviderStateMixin {
   final HODataService _dataService = HODataService();
+  late TabController _tabController;
   bool _isLoading = true;
-  List<Map<String, dynamic>> _versions = [];
+  List<Map<String, dynamic>> _memberVersions = [];
+  List<Map<String, dynamic>> _stationVersions = [];
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        _loadVersions();
+      }
+    });
     _loadVersions();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadVersions() async {
     setState(() => _isLoading = true);
     try {
-      final versions = await _dataService.getAppVersions();
+      final member = await _dataService.getAppVersions(appType: 'member_app');
+      final station = await _dataService.getAppVersions(appType: 'station_app');
       setState(() {
-        _versions = versions;
+        _memberVersions = member;
+        _stationVersions = station;
       });
     } catch (e) {
       ScaffoldMessenger.of(
@@ -39,10 +58,17 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
   }
 
   void _showEditDialog([Map<String, dynamic>? version]) {
+    final initialAppType = version != null
+        ? version['app_type']
+        : (_tabController.index == 0 ? 'member_app' : 'station_app');
+
     showDialog(
       context: context,
-      builder: (context) =>
-          _VersionEditDialog(version: version, onSave: () => _loadVersions()),
+      builder: (context) => _VersionEditDialog(
+        version: version,
+        initialAppType: initialAppType,
+        onSave: () => _loadVersions(),
+      ),
     );
   }
 
@@ -59,7 +85,7 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Mobile App Update Management',
+                  'App Update Management',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -82,10 +108,28 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
               ],
             ),
             const SizedBox(height: 24),
+            TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Member App (Mobile)'),
+                Tab(text: 'Station App (Windows/Android)'),
+              ],
+              labelColor: HOColors.accent,
+              unselectedLabelColor: Colors.white54,
+              indicatorColor: HOColors.accent,
+              isScrollable: true,
+            ),
+            const SizedBox(height: 16),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _buildVersionList(),
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildVersionList(_memberVersions),
+                        _buildVersionList(_stationVersions),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -93,8 +137,8 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
     );
   }
 
-  Widget _buildVersionList() {
-    if (_versions.isEmpty) {
+  Widget _buildVersionList(List<Map<String, dynamic>> versions) {
+    if (versions.isEmpty) {
       return const Center(
         child: Text(
           'No version records found',
@@ -107,11 +151,11 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
       color: HOColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListView.separated(
-        itemCount: _versions.length,
+        itemCount: versions.length,
         separatorBuilder: (context, index) =>
             Divider(color: Colors.white.withOpacity(0.05)),
         itemBuilder: (context, index) {
-          final v = _versions[index];
+          final v = versions[index];
           final bool isMandatory = v['is_mandatory'] ?? false;
 
           return ListTile(
@@ -268,9 +312,14 @@ class _AppVersionManagementPageState extends State<AppVersionManagementPage> {
 
 class _VersionEditDialog extends StatefulWidget {
   final Map<String, dynamic>? version;
+  final String initialAppType;
   final VoidCallback onSave;
 
-  const _VersionEditDialog({this.version, required this.onSave});
+  const _VersionEditDialog({
+    this.version,
+    required this.initialAppType,
+    required this.onSave,
+  });
 
   @override
   State<_VersionEditDialog> createState() => _VersionEditDialogState();
@@ -284,8 +333,147 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
   late TextEditingController _androidController;
   late TextEditingController _iosController;
   late TextEditingController _windowsController;
+  String _appType = 'member_app';
   bool _isMandatory = false;
   bool _isSaving = false;
+  bool _isUploading = false;
+  String? _uploadFieldName;
+
+  Future<void> _uploadReleaseFile(
+    String fieldName,
+    TextEditingController controller,
+    List<String> allowedExtensions,
+  ) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: allowedExtensions,
+        withData: true,
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final file = result.files.first;
+      final fileBytes = file.bytes;
+      if (fileBytes == null) {
+        throw "Could not read file bytes. Please try again.";
+      }
+
+      setState(() {
+        _isUploading = true;
+        _uploadFieldName = fieldName;
+      });
+
+      final String version = _codeController.text.isNotEmpty ? _codeController.text : 'temp';
+      final String fileName = "${version}_${file.name.replaceAll(' ', '_')}";
+      final String path = "releases/$_appType/$fileName";
+
+      final supabase = Supabase.instance.client;
+      
+      await supabase.storage.from('apps').uploadBinary(
+        path,
+        fileBytes,
+        fileOptions: const FileOptions(upsert: true),
+      );
+
+      final String publicUrl = supabase.storage.from('apps').getPublicUrl(path);
+
+      setState(() {
+        controller.text = publicUrl;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File uploaded successfully: $fileName')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Upload Error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload Failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          _uploadFieldName = null;
+        });
+      }
+    }
+  }
+
+  Widget _buildFieldWithUpload(
+    String label,
+    TextEditingController controller,
+    String fieldName,
+    List<String> allowedExtensions,
+  ) {
+    final bool isThisUploading = _isUploading && _uploadFieldName == fieldName;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextFormField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              labelText: label,
+              labelStyle: const TextStyle(color: Colors.white54),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.05),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              suffixIcon: isThisUploading
+                  ? const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: HOColors.accent,
+                        ),
+                      ),
+                    )
+                  : controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.white30, size: 20),
+                          onPressed: () => setState(() => controller.clear()),
+                        )
+                      : null,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton.icon(
+          onPressed: _isUploading
+              ? null
+              : () => _uploadReleaseFile(fieldName, controller, allowedExtensions),
+          icon: isThisUploading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Icon(Icons.cloud_upload_rounded),
+          label: Text(isThisUploading ? 'Uploading...' : 'Upload File'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: HOColors.accent.withOpacity(0.8),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   void initState() {
@@ -308,6 +496,7 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
     _windowsController = TextEditingController(
       text: widget.version?['windows_url'] ?? '',
     );
+    _appType = widget.version?['app_type'] ?? widget.initialAppType;
     _isMandatory = widget.version?['is_mandatory'] ?? false;
   }
 
@@ -326,6 +515,7 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
         'windows_url': _windowsController.text.isNotEmpty
             ? _windowsController.text
             : null,
+        'app_type': _appType,
         'is_mandatory': _isMandatory,
       };
 
@@ -376,7 +566,9 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  _buildAppTypeDropdown(),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
@@ -398,11 +590,28 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
                   const SizedBox(height: 16),
                   _buildField('Release Notes', _notesController, maxLines: 3),
                   const SizedBox(height: 16),
-                  _buildField('Android Download URL', _androidController),
-                  const SizedBox(height: 16),
-                  _buildField('iOS Download URL', _iosController),
-                  const SizedBox(height: 16),
-                  _buildField('Windows Download URL', _windowsController),
+                  if (_appType == 'member_app' || _appType == 'station_app') ...[
+                    const SizedBox(height: 16),
+                    _buildFieldWithUpload(
+                      'Android Download URL (.apk)',
+                      _androidController,
+                      'android',
+                      ['apk'],
+                    ),
+                  ],
+                  if (_appType == 'member_app') ...[
+                    const SizedBox(height: 16),
+                    _buildField('iOS Download URL', _iosController),
+                  ],
+                  if (_appType == 'station_app') ...[
+                    const SizedBox(height: 16),
+                    _buildFieldWithUpload(
+                      'Windows Download URL (.zip, .exe)',
+                      _windowsController,
+                      'windows',
+                      ['zip', 'exe'],
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   SwitchListTile(
                     title: const Text(
@@ -455,6 +664,32 @@ class _VersionEditDialogState extends State<_VersionEditDialog> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAppTypeDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _appType,
+      dropdownColor: HOColors.surface,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: 'Select App to Update',
+        labelStyle: const TextStyle(color: Colors.white54),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.05),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'member_app', child: Text('Member App')),
+        DropdownMenuItem(value: 'station_app', child: Text('Station App')),
+      ],
+      onChanged: (val) {
+        if (val != null) {
+          setState(() {
+            _appType = val;
+          });
+        }
+      },
     );
   }
 

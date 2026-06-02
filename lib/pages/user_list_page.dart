@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/theme.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
 import 'package:intl/intl.dart';
-import 'package:ho_msloyalty/services/sms_service.dart';
+import 'package:ms_dashboard/services/sms_service.dart';
 
 class UserListPage extends StatefulWidget {
   const UserListPage({super.key});
@@ -93,14 +93,19 @@ class _UserListPageState extends State<UserListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 850;
+    final double pagePadding = isMobile ? 16.0 : 32.0;
+    final double gapHeight = isMobile ? 16.0 : 32.0;
+
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: EdgeInsets.all(pagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
-          const SizedBox(height: 32),
-          _buildFilters(),
+          _buildHeader(isMobile),
+          SizedBox(height: gapHeight),
+          _buildFilters(isMobile),
           if (_isSendingMulti) ...[
             const SizedBox(height: 16),
             ClipRRect(
@@ -122,7 +127,7 @@ class _UserListPageState extends State<UserListPage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -131,12 +136,13 @@ class _UserListPageState extends State<UserListPage> {
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w900,
             color: Colors.white,
-            letterSpacing: 2.0,
+            fontSize: isMobile ? 20.0 : 28.0,
+            letterSpacing: isMobile ? 1.0 : 2.0,
           ),
         ),
         const SizedBox(height: 4),
         Container(
-          width: 80,
+          width: isMobile ? 50 : 80,
           height: 4,
           decoration: BoxDecoration(
             gradient: HOColors.premiumGradient,
@@ -147,72 +153,100 @@ class _UserListPageState extends State<UserListPage> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(bool isMobile) {
+    final searchField = TextField(
+      onChanged: (v) => setState(() => _searchQuery = v),
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: 'Search by Name, Phone or Member ID...',
+        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+        prefixIcon: Icon(
+          Icons.search,
+          color: Colors.white.withOpacity(0.5),
+        ),
+        filled: true,
+        fillColor: Colors.black26,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+
+    final tierDropdown = _buildModernDropdown(
+      _selectedTier,
+      ['All Tiers', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'],
+      (v) {
+        setState(() => _selectedTier = v!);
+      },
+    );
+
+    final statusDropdown = _buildModernDropdown(
+      _selectedStatus,
+      ['All Status', 'Active', 'Inactive'],
+      (v) {
+        setState(() => _selectedStatus = v!);
+      },
+    );
+
+    final sendButton = _selectedUserIds.isNotEmpty
+        ? ElevatedButton.icon(
+            onPressed: _isSendingMulti ? null : () => _showMultiSMSDialog(),
+            icon: const Icon(Icons.send, size: 16),
+            label: Text('SEND TO ${_selectedUserIds.length} SELECTED'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: HOColors.accent,
+              foregroundColor: Colors.black,
+            ),
+          )
+        : null;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? 12 : 20),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  onChanged: (v) => setState(() => _searchQuery = v),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search by Name, Phone or Member ID...',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Colors.white.withOpacity(0.5),
+          child: isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    searchField,
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: tierDropdown),
+                        const SizedBox(width: 12),
+                        Expanded(child: statusDropdown),
+                      ],
                     ),
-                    filled: true,
-                    fillColor: Colors.black26,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                    if (sendButton != null) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: sendButton,
+                      ),
+                    ],
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: searchField),
+                    const SizedBox(width: 20),
+                    tierDropdown,
+                    const SizedBox(width: 12),
+                    statusDropdown,
+                    if (sendButton != null) ...[
+                      const SizedBox(width: 12),
+                      sendButton,
+                    ],
+                  ],
                 ),
-              ),
-              const SizedBox(width: 20),
-              _buildModernDropdown(
-                _selectedTier,
-                ['All Tiers', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'],
-                (v) {
-                  setState(() => _selectedTier = v!);
-                },
-              ),
-              const SizedBox(width: 12),
-              _buildModernDropdown(
-                _selectedStatus,
-                ['All Status', 'Active', 'Inactive'],
-                (v) {
-                  setState(() => _selectedStatus = v!);
-                },
-              ),
-              if (_selectedUserIds.isNotEmpty) ...[
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: _isSendingMulti
-                      ? null
-                      : () => _showMultiSMSDialog(),
-                  icon: const Icon(Icons.send, size: 16),
-                  label: Text('SEND TO ${_selectedUserIds.length} SELECTED'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: HOColors.accent,
-                    foregroundColor: Colors.black,
-                  ),
-                ),
-              ],
-            ],
-          ),
         ),
       ),
     );
@@ -866,23 +900,42 @@ class _UserListPageState extends State<UserListPage> {
               ),
             ],
           ),
-          child: Column(
-            children: [
-              _buildTableHeader(),
-              Expanded(
-                child: Scrollbar(
-                  child: ListView.separated(
-                    itemCount: _filteredUsers.length,
-                    separatorBuilder: (context, index) => Divider(
-                      height: 1,
-                      color: Colors.white.withOpacity(0.05),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const double minTableWidth = 1100;
+              final bool useHorizontalScroll = constraints.maxWidth < minTableWidth;
+
+              Widget tableContent = Column(
+                children: [
+                  _buildTableHeader(),
+                  Expanded(
+                    child: Scrollbar(
+                      child: ListView.separated(
+                        itemCount: _filteredUsers.length,
+                        separatorBuilder: (context, index) => Divider(
+                          height: 1,
+                          color: Colors.white.withOpacity(0.05),
+                        ),
+                        itemBuilder: (context, index) =>
+                            _buildUserRow(_filteredUsers[index]),
+                      ),
                     ),
-                    itemBuilder: (context, index) =>
-                        _buildUserRow(_filteredUsers[index]),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+
+              if (useHorizontalScroll) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: minTableWidth,
+                    child: tableContent,
+                  ),
+                );
+              } else {
+                return tableContent;
+              }
+            },
           ),
         ),
       ),
@@ -940,22 +993,26 @@ class _UserListPageState extends State<UserListPage> {
                     _pointsSortOrder = "None";
                 });
               },
-              child: Row(
-                children: [
-                  const Text('POINTS', style: _headerStyle),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _pointsSortOrder == "Asc"
-                        ? Icons.arrow_upward
-                        : _pointsSortOrder == "Desc"
-                        ? Icons.arrow_downward
-                        : Icons.sort,
-                    size: 14,
-                    color: _pointsSortOrder == "None"
-                        ? Colors.white24
-                        : HOColors.accent,
-                  ),
-                ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [
+                    const Text('POINTS', style: _headerStyle),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _pointsSortOrder == "Asc"
+                          ? Icons.arrow_upward
+                          : _pointsSortOrder == "Desc"
+                          ? Icons.arrow_downward
+                          : Icons.sort,
+                      size: 14,
+                      color: _pointsSortOrder == "None"
+                          ? Colors.white24
+                          : HOColors.accent,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1144,32 +1201,36 @@ class _UserListPageState extends State<UserListPage> {
     if (tier == 'SILVER') color = Colors.blueGrey.shade100;
     if (tier == 'PLATINUM') color = Colors.cyanAccent;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.stars, color: color, size: 12),
-          const SizedBox(width: 6),
-          Text(
-            tier,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-            ),
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.stars, color: color, size: 12),
+            const SizedBox(width: 6),
+            Text(
+              tier,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

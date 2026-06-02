@@ -1,4 +1,4 @@
-package com.example.ho_msloyalty
+package com.example.ms_dashboard
 
 import io.flutter.embedding.android.FlutterActivity
 

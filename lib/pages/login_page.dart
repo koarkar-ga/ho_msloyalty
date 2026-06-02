@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/theme.dart';
+import 'package:ms_dashboard/theme.dart';
 // import just to get HODashboardBase if needed, actually we need main.dart's HODashboardBase
-import 'package:ho_msloyalty/services/data_service.dart';
-import 'package:ho_msloyalty/main.dart';
+import 'package:ms_dashboard/services/data_service.dart';
+import 'package:ms_dashboard/services/session_manager.dart';
+import 'package:ms_dashboard/main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,6 +18,30 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _checkingSession = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCurrentSession();
+  }
+
+  Future<void> _checkCurrentSession() async {
+    final isValid = await SessionManager.isSessionValid();
+    if (isValid) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HODashboardBase()),
+        );
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _checkingSession = false;
+        });
+      }
+    }
+  }
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
@@ -31,9 +56,16 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (result != null && result['status'] == 'success') {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HODashboardBase()),
-      );
+      final user = result['user'];
+      final userId = int.tryParse(user['id']?.toString() ?? '') ?? 0;
+      final userName = user['username']?.toString() ?? '';
+      await SessionManager.saveSession(username: userName, userId: userId);
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HODashboardBase()),
+        );
+      }
     } else {
       _showErrorDialog(result?['message'] ?? 'Login failed');
     }
@@ -61,6 +93,17 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_checkingSession) {
+      return const Scaffold(
+        backgroundColor: HOColors.background,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: HOColors.accent,
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: HOColors.background,
       body: Center(

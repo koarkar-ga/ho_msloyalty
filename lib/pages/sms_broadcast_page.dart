@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/theme.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
-import 'package:ho_msloyalty/services/sms_service.dart';
+import 'package:ms_dashboard/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
+import 'package:ms_dashboard/services/sms_service.dart';
 
 class SMSBroadcastPage extends StatefulWidget {
   const SMSBroadcastPage({super.key});

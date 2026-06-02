@@ -1,0 +1,14 @@
+{
+  "name": "ms_dashboard_server",
+  "version": "1.0.0",
+  "description": "Production Node.js server for ms_dashboard Flutter Web app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "prod": "pm2 start ecosystem.config.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "private": true
+}

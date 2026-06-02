@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:ho_msloyalty/theme.dart';
-import 'package:ho_msloyalty/services/data_service.dart';
+import 'package:ms_dashboard/theme.dart';
+import 'package:ms_dashboard/services/data_service.dart';
 import 'package:intl/intl.dart';
 
 class GpsBowserPage extends StatefulWidget {
@@ -55,14 +55,19 @@ class _GpsBowserPageState extends State<GpsBowserPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 850;
+    final double pagePadding = isMobile ? 16.0 : 32.0;
+    final double gapHeight = isMobile ? 16.0 : 32.0;
+
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: EdgeInsets.all(pagePadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
-          const SizedBox(height: 32),
-          _buildFilters(),
+          _buildHeader(isMobile),
+          SizedBox(height: gapHeight),
+          _buildFilters(isMobile),
           const SizedBox(height: 24),
           Expanded(child: _buildGlassyTable()),
         ],
@@ -70,56 +75,78 @@ class _GpsBowserPageState extends State<GpsBowserPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeader(bool isMobile) {
+    final titleWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'GPS BOWSER MANAGEMENT',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: 2.0,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              width: 80,
-              height: 4,
-              decoration: BoxDecoration(
-                gradient: HOColors.premiumGradient,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ],
+        Text(
+          'GPS BOWSER MANAGEMENT',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            fontSize: isMobile ? 20.0 : 28.0,
+            letterSpacing: isMobile ? 1.0 : 2.0,
+          ),
         ),
-        ElevatedButton.icon(
-          onPressed: () => _showAddEditDialog(),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('ADD NEW BOWSER'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: HOColors.accent,
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+        const SizedBox(height: 4),
+        Container(
+          width: isMobile ? 50 : 80,
+          height: 4,
+          decoration: BoxDecoration(
+            gradient: HOColors.premiumGradient,
+            borderRadius: BorderRadius.circular(2),
           ),
         ),
       ],
     );
+
+    final buttonWidget = ElevatedButton.icon(
+      onPressed: () => _showAddEditDialog(),
+      icon: const Icon(Icons.add, size: 18),
+      label: const Text('ADD NEW BOWSER'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: HOColors.accent,
+        foregroundColor: Colors.black,
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 16 : 24,
+          vertical: isMobile ? 12 : 18,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          titleWidget,
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: buttonWidget,
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        titleWidget,
+        buttonWidget,
+      ],
+    );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(bool isMobile) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? 12 : 20),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
@@ -147,7 +174,7 @@ class _GpsBowserPageState extends State<GpsBowserPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: isMobile ? 12 : 20),
               IconButton(
                 onPressed: _loadData,
                 icon: const Icon(Icons.refresh, color: HOColors.accent),
@@ -359,8 +386,9 @@ class _GpsBowserPageState extends State<GpsBowserPage> {
           isEdit ? 'EDIT BOWSER' : 'ADD NEW BOWSER',
           style: const TextStyle(color: Colors.white),
         ),
-        content: SizedBox(
-          width: 500,
+        content: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          width: MediaQuery.of(context).size.width * 0.9,
           child: SingleChildScrollView(
             child: Form(
               key: formKey,
